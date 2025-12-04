@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "calories",
-    "slug": "calories",
+    "slug": "apps",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "53ee4f04-9e13-493f-98f1-85c1aee2099d"
+      }
+    },
+    "owner": "lafathas-organization"
   }
 }
