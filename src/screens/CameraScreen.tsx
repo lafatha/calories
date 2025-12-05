@@ -22,6 +22,17 @@ import {
   AlertCircle,
   Zap,
   ArrowRight,
+  Coffee,
+  Sun,
+  Moon,
+  Cookie,
+  UtensilsCrossed,
+  Flame,
+  Search,
+  Beef,
+  Wheat,
+  Droplets,
+  PieChart,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTime } from '../hooks/useTime';
@@ -33,11 +44,11 @@ import { FoodAnalysis, MealType, RootStackParamList } from '../types';
 
 const { width } = Dimensions.get('window');
 
-const MEAL_CONFIG: Record<MealType, { emoji: string; color: string }> = {
-  breakfast: { emoji: '🌅', color: THEME.colors.meal.breakfast },
-  lunch: { emoji: '☀️', color: THEME.colors.meal.lunch },
-  dinner: { emoji: '🌙', color: THEME.colors.meal.dinner },
-  snack: { emoji: '🍪', color: THEME.colors.meal.snack },
+const MEAL_CONFIG: Record<MealType, { icon: any; color: string }> = {
+  breakfast: { icon: Coffee, color: THEME.colors.meal.breakfast },
+  lunch: { icon: Sun, color: THEME.colors.meal.lunch },
+  dinner: { icon: Moon, color: THEME.colors.meal.dinner },
+  snack: { icon: Cookie, color: THEME.colors.meal.snack },
 };
 
 export const CameraScreen = () => {
@@ -138,7 +149,7 @@ export const CameraScreen = () => {
           `Could not save meal: ${error.message || 'Unknown error'}.`
         );
       } else {
-        Alert.alert('Meal Logged! 🎉', 'Your meal has been saved successfully!', [
+        Alert.alert('Meal Logged!', 'Your meal has been saved successfully!', [
           { text: 'OK', onPress: () => navigation.navigate('Main') },
         ]);
       }
@@ -181,7 +192,8 @@ export const CameraScreen = () => {
           <View style={styles.imageSection}>
             <Image source={{ uri: imageUri }} style={styles.previewImage} />
             <TouchableOpacity style={styles.changeButton} onPress={handleReset}>
-              <Text style={styles.changeButtonText}>📷 Change Photo</Text>
+              <Camera size={16} color={THEME.colors.neutral.charcoal} />
+              <Text style={styles.changeButtonText}>Change Photo</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -207,7 +219,7 @@ export const CameraScreen = () => {
 
             <Text style={styles.uploadTitle}>Capture Your Meal</Text>
             <Text style={styles.uploadSubtitle}>
-              Take a photo and let AI do the calorie counting! ✨
+              Take a photo and let AI do the calorie counting!
             </Text>
 
             {/* Upload Buttons */}
@@ -231,12 +243,16 @@ export const CameraScreen = () => {
           </View>
         )}
 
-        {/* Meal Type Selector */}
+        {/* Meal Type Selector - Icons Only */}
         <View style={styles.mealSection}>
-          <Text style={styles.sectionLabel}>What meal is this? 🍴</Text>
+          <View style={styles.sectionLabelRow}>
+            <UtensilsCrossed size={18} color={THEME.colors.neutral.charcoal} />
+            <Text style={styles.sectionLabel}>What meal is this?</Text>
+          </View>
           <View style={styles.mealPills}>
             {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((type) => {
               const config = MEAL_CONFIG[type];
+              const Icon = config.icon;
               const isSelected = selectedMealType === type;
 
               return (
@@ -248,7 +264,7 @@ export const CameraScreen = () => {
                   ]}
                   onPress={() => setSelectedMealType(type)}
                 >
-                  <Text style={styles.mealPillEmoji}>{config.emoji}</Text>
+                  <Icon size={18} color={isSelected ? THEME.colors.neutral.white : config.color} />
                   <Text style={[
                     styles.mealPillText,
                     isSelected && styles.mealPillTextActive
@@ -273,17 +289,17 @@ export const CameraScreen = () => {
             </View>
             <View style={styles.analyzeContent}>
               <Text style={styles.analyzeTitle}>
-                {isAnalyzing ? 'Analyzing... ✨' : 'Analyze with AI'}
+                {isAnalyzing ? 'Analyzing...' : 'Analyze with AI'}
               </Text>
               <Text style={styles.analyzeSubtitle}>
-                {isAnalyzing ? 'Magic happening!' : 'Get instant calorie estimates'}
+                {isAnalyzing ? 'Processing your meal' : 'Get instant calorie estimates'}
               </Text>
             </View>
             <ArrowRight size={24} color={THEME.colors.neutral.white} />
           </TouchableOpacity>
         )}
 
-        {/* Analysis Results */}
+        {/* Analysis Results - Icons Only */}
         {analysis && (
           <View style={styles.resultsSection}>
             {/* Success Header */}
@@ -291,7 +307,7 @@ export const CameraScreen = () => {
               <View style={styles.successBadge}>
                 <Check size={16} color={THEME.colors.neutral.white} />
               </View>
-              <Text style={styles.resultsTitle}>Analysis Complete! 🎉</Text>
+              <Text style={styles.resultsTitle}>Analysis Complete!</Text>
               <View style={styles.confidencePill}>
                 <Zap size={12} color={THEME.colors.accent.orange} />
                 <Text style={styles.confidenceText}>
@@ -302,7 +318,9 @@ export const CameraScreen = () => {
 
             {/* Calories Hero */}
             <View style={styles.caloriesHero}>
-              <Text style={styles.caloriesEmoji}>🔥</Text>
+              <View style={styles.caloriesIconContainer}>
+                <Flame size={28} color={THEME.colors.accent.orange} fill={THEME.colors.accent.orange} />
+              </View>
               <View style={styles.caloriesInfo}>
                 <Text style={styles.caloriesLabel}>Total Calories</Text>
                 <View style={styles.caloriesRow}>
@@ -314,7 +332,10 @@ export const CameraScreen = () => {
 
             {/* Food Items List */}
             <View style={styles.foodsList}>
-              <Text style={styles.foodsTitle}>Detected Foods 🔍</Text>
+              <View style={styles.foodsTitleRow}>
+                <Search size={16} color={THEME.colors.neutral.charcoal} />
+                <Text style={styles.foodsTitle}>Detected Foods</Text>
+              </View>
               {analysis.foods.map((food, index) => (
                 <View key={index} style={styles.foodItem}>
                   <View style={styles.foodBullet}>
@@ -332,24 +353,27 @@ export const CameraScreen = () => {
             {/* Macros */}
             {analysis.foods.some((f) => f.macros) && (
               <View style={styles.macrosSection}>
-                <Text style={styles.macrosTitle}>Nutrition Breakdown 📊</Text>
+                <View style={styles.macrosTitleRow}>
+                  <PieChart size={16} color={THEME.colors.neutral.charcoal} />
+                  <Text style={styles.macrosTitle}>Nutrition Breakdown</Text>
+                </View>
                 <View style={styles.macrosRow}>
                   <View style={[styles.macroCard, { backgroundColor: THEME.colors.accent.blue + '12' }]}>
-                    <Text style={styles.macroEmoji}>💪</Text>
+                    <Beef size={22} color={THEME.colors.accent.blue} />
                     <Text style={[styles.macroValue, { color: THEME.colors.accent.blue }]}>
                       {analysis.foods.reduce((sum, f) => sum + (f.macros?.protein || 0), 0)}g
                     </Text>
                     <Text style={styles.macroLabel}>Protein</Text>
                   </View>
                   <View style={[styles.macroCard, { backgroundColor: THEME.colors.accent.orange + '12' }]}>
-                    <Text style={styles.macroEmoji}>⚡</Text>
+                    <Wheat size={22} color={THEME.colors.accent.orange} />
                     <Text style={[styles.macroValue, { color: THEME.colors.accent.orange }]}>
                       {analysis.foods.reduce((sum, f) => sum + (f.macros?.carbs || 0), 0)}g
                     </Text>
                     <Text style={styles.macroLabel}>Carbs</Text>
                   </View>
                   <View style={[styles.macroCard, { backgroundColor: THEME.colors.accent.purple + '12' }]}>
-                    <Text style={styles.macroEmoji}>🥑</Text>
+                    <Droplets size={22} color={THEME.colors.accent.purple} />
                     <Text style={[styles.macroValue, { color: THEME.colors.accent.purple }]}>
                       {analysis.foods.reduce((sum, f) => sum + (f.macros?.fat || 0), 0)}g
                     </Text>
@@ -365,7 +389,7 @@ export const CameraScreen = () => {
               onPress={handleSaveMeal}
               disabled={isSaving}
             >
-              <Text style={styles.saveButtonEmoji}>✅</Text>
+              <Check size={20} color={THEME.colors.neutral.white} />
               <Text style={styles.saveButtonText}>
                 {isSaving ? 'Saving...' : 'Save to My Log'}
               </Text>
@@ -439,7 +463,10 @@ const styles = StyleSheet.create({
     borderRadius: THEME.layout.borderRadius['2xl'],
   },
   changeButton: {
+    flexDirection: 'row',
     alignSelf: 'center',
+    alignItems: 'center',
+    gap: 8,
     marginTop: THEME.spacing.md,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -559,11 +586,16 @@ const styles = StyleSheet.create({
   mealSection: {
     marginBottom: THEME.spacing.xl,
   },
+  sectionLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.md,
+  },
   sectionLabel: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.black,
-    marginBottom: THEME.spacing.md,
   },
   mealPills: {
     flexDirection: 'row',
@@ -574,14 +606,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
     backgroundColor: THEME.colors.neutral.white,
     paddingVertical: THEME.spacing.md,
     borderRadius: THEME.layout.borderRadius.xl,
     ...THEME.shadows.xs,
-  },
-  mealPillEmoji: {
-    fontSize: 14,
   },
   mealPillText: {
     fontSize: THEME.typography.fontSizes.xs,
@@ -671,8 +700,14 @@ const styles = StyleSheet.create({
     padding: THEME.spacing.lg,
     marginBottom: THEME.spacing.xl,
   },
-  caloriesEmoji: {
-    fontSize: 40,
+  caloriesIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: THEME.layout.borderRadius.xl,
+    backgroundColor: THEME.colors.neutral.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...THEME.shadows.sm,
   },
   caloriesInfo: {
     flex: 1,
@@ -700,11 +735,16 @@ const styles = StyleSheet.create({
   foodsList: {
     marginBottom: THEME.spacing.xl,
   },
+  foodsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.md,
+  },
   foodsTitle: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.black,
-    marginBottom: THEME.spacing.md,
   },
   foodItem: {
     flexDirection: 'row',
@@ -749,11 +789,16 @@ const styles = StyleSheet.create({
   macrosSection: {
     marginBottom: THEME.spacing.xl,
   },
+  macrosTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.md,
+  },
   macrosTitle: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.black,
-    marginBottom: THEME.spacing.md,
   },
   macrosRow: {
     flexDirection: 'row',
@@ -765,9 +810,6 @@ const styles = StyleSheet.create({
     padding: THEME.spacing.md,
     borderRadius: THEME.layout.borderRadius.xl,
     gap: 4,
-  },
-  macroEmoji: {
-    fontSize: 22,
   },
   macroValue: {
     fontSize: THEME.typography.fontSizes.lg,
@@ -788,9 +830,6 @@ const styles = StyleSheet.create({
     borderRadius: THEME.layout.borderRadius.xl,
     marginBottom: THEME.spacing.md,
     ...THEME.shadows.md,
-  },
-  saveButtonEmoji: {
-    fontSize: 20,
   },
   saveButtonText: {
     fontSize: THEME.typography.fontSizes.md,

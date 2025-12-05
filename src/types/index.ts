@@ -13,8 +13,8 @@ export interface User {
   email: string;
 }
 
-import { Profile, MealType } from './database';
-export { Profile, MealType };
+import { Profile, MealType, Meal } from './database';
+export { Profile, MealType, Meal };
 
 // AI Analysis Types
 export interface FoodAnalysis {
