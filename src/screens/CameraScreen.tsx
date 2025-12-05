@@ -28,6 +28,7 @@ import {
   AlertCircle,
   Zap,
   ArrowRight,
+  ChevronLeft,
   Coffee,
   Sun,
   Moon,
@@ -232,10 +233,9 @@ export const CameraScreen = () => {
           onPress={() => navigation.goBack()}
           style={styles.closeButton}
         >
-          <X size={22} color={colors.text.primary} />
+          <ChevronLeft size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerEmoji}>📸</Text>
           <Text style={styles.headerTitle}>Log Meal</Text>
         </View>
         <View style={styles.headerSpacer} />
@@ -813,8 +813,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   closeButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -822,9 +820,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: THEME.spacing.sm,
-  },
-  headerEmoji: {
-    fontSize: 24,
   },
   headerTitle: {
     fontSize: THEME.typography.fontSizes.lg,

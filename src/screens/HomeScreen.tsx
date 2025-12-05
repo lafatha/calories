@@ -57,7 +57,7 @@ const generateDates = () => {
   return dates;
 };
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export const HomeScreen = () => {
@@ -82,9 +82,8 @@ export const HomeScreen = () => {
 
   const getGreetingIcon = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return <Sunrise size={28} color={colors.accent.orange} />;
-    if (hour < 17) return <Sun size={28} color={colors.accent.orange} />;
-    if (hour < 21) return <Sunset size={28} color={colors.accent.purple} />;
+    if (hour >= 0 && hour < 10) return <Sunrise size={28} color={colors.accent.orange} />;
+    if (hour >= 10 && hour < 17) return <Sun size={28} color={colors.accent.orange} />;
     return <CloudMoon size={28} color={colors.primary.main} />;
   };
 
@@ -185,7 +184,7 @@ export const HomeScreen = () => {
 
             {/* Stats on right */}
             <View style={styles.quickStatsRow}>
-              <View style={styles.quickStat}>
+              <View style={[styles.quickStat, styles.quickStatGoal]}>
                 <Text style={styles.quickStatValue} numberOfLines={1}>{dailyGoal}</Text>
                 <Text style={styles.quickStatLabel} numberOfLines={1}>Goal</Text>
               </View>
@@ -415,21 +414,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   greetingIconContainer: {
     width: 48,
     height: 48,
-    borderRadius: THEME.layout.borderRadius.xl,
+    borderRadius: 12,
     backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    // Shadow for light mode, border for dark mode
-    ...(isDark ? {
-      borderWidth: 1,
-      borderColor: colors.border.light,
-    } : {
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 1,
-      shadowRadius: 8,
-      elevation: 3,
-    }),
+    borderWidth: isDark ? 1 : 0,
+    borderColor: colors.border.light,
   },
   greeting: {
     fontSize: THEME.typography.fontSizes.base,
@@ -456,20 +446,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   progressCard: {
     backgroundColor: colors.background.card,
-    borderRadius: THEME.layout.borderRadius['2xl'],
+    borderRadius: 20,
     padding: THEME.spacing.xl,
     marginBottom: THEME.spacing.lg,
-    // Shadow for light mode, border for dark mode
-    ...(isDark ? {
-      borderWidth: 1,
-      borderColor: colors.border.light,
-    } : {
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 1,
-      shadowRadius: 16,
-      elevation: 5,
-    }),
+    // Cleaner, no shadow - just subtle border
+    borderWidth: isDark ? 1 : 0,
+    borderColor: colors.border.light,
   },
   progressTopRow: {
     flexDirection: 'row',
@@ -480,7 +462,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colors.primary.main + '12',
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -491,7 +473,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 4,
+    borderWidth: 3,
     borderColor: colors.primary.main,
   },
   progressCalories: {
@@ -515,15 +497,18 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     width: 90,
     paddingHorizontal: THEME.spacing.xs,
   },
+  quickStatGoal: {
+    paddingLeft: 26,
+  },
   quickStatValue: {
-    fontSize: THEME.typography.fontSizes['2xl'],
+    fontSize: THEME.typography.fontSizes['2xl'] * 0.9,
     fontWeight: THEME.typography.fontWeights.bold,
     color: colors.text.primary,
     textAlign: 'center',
     width: '100%',
   },
   quickStatLabel: {
-    fontSize: THEME.typography.fontSizes.sm,
+    fontSize: THEME.typography.fontSizes.sm * 0.9,
     color: colors.text.secondary,
     marginTop: 4,
     textAlign: 'center',
@@ -587,20 +572,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     width: 56,
     height: 56,
     marginHorizontal: 6,
-    borderRadius: THEME.layout.borderRadius.lg,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    // Shadow for calendar items
-    ...(isDark ? {
-      borderWidth: 1,
-      borderColor: colors.border.light,
-    } : {
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 1,
-      shadowRadius: 4,
-      elevation: 2,
-    }),
+    borderWidth: isDark ? 1 : 0,
+    borderColor: colors.border.light,
   },
   dateWeekday: {
     fontSize: THEME.typography.fontSizes.xs,
@@ -614,16 +590,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary.main,
-    borderRadius: THEME.layout.borderRadius.xl,
+    borderRadius: 16,
     padding: THEME.spacing.lg,
     marginBottom: THEME.spacing.xl,
     gap: THEME.spacing.md,
-    // Glow shadow
-    shadowColor: colors.primary.main,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
   },
   quickAddIcon: {
     width: 48,
@@ -713,21 +683,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   mealCard: {
     width: (width - 40 - THEME.spacing.md) / 2,
     backgroundColor: colors.background.card,
-    borderRadius: THEME.layout.borderRadius.xl,
+    borderRadius: 16,
     padding: THEME.spacing.lg,
     alignItems: 'center',
     position: 'relative',
-    // Shadow for meal cards
-    ...(isDark ? {
-      borderWidth: 1,
-      borderColor: colors.border.light,
-    } : {
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 1,
-      shadowRadius: 10,
-      elevation: 4,
-    }),
+    borderWidth: isDark ? 1 : 0,
+    borderColor: colors.border.light,
   },
   mealCardCurrent: {
     borderWidth: 2,
@@ -784,19 +745,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   mealItemsCard: {
     backgroundColor: colors.background.card,
-    borderRadius: THEME.layout.borderRadius.xl,
+    borderRadius: 16,
     padding: THEME.spacing.lg,
-    // Shadow for logged items card
-    ...(isDark ? {
-      borderWidth: 1,
-      borderColor: colors.border.light,
-    } : {
-      shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 1,
-      shadowRadius: 10,
-      elevation: 4,
-    }),
+    borderWidth: isDark ? 1 : 0,
+    borderColor: colors.border.light,
   },
   mealItem: {
     flexDirection: 'row',

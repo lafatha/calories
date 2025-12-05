@@ -33,9 +33,8 @@ const getMealTimeRange = (mealType: MealType): string => {
 
 // Get greeting based on time of day
 const getGreeting = (hour: number): string => {
-  if (hour >= 5 && hour < 12) return 'Good morning';
-  if (hour >= 12 && hour < 17) return 'Good afternoon';
-  if (hour >= 17 && hour < 21) return 'Good evening';
+  if (hour >= 0 && hour < 10) return 'Good morning';
+  if (hour >= 10 && hour < 17) return 'Good afternoon';
   return 'Good night';
 };
 

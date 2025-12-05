@@ -3,10 +3,10 @@ import { Platform } from 'react-native';
 
 export const COLORS = {
   primary: {
-    main: '#4F46E5',      // Electric Indigo
-    light: '#818CF8',     // Light Indigo
-    dark: '#3730A3',      // Dark Indigo
-    gradient: ['#4F46E5', '#7C3AED'], // Indigo to Purple
+    main: '#007AFF',      // iOS blue - cleaner and softer
+    light: '#5AC8FA',     // Light blue
+    dark: '#0051D5',      // Darker blue
+    gradient: ['#007AFF', '#5AC8FA'], // Blue gradient
   },
   secondary: {
     main: '#F43F5E',      // Rose
@@ -14,13 +14,13 @@ export const COLORS = {
     dark: '#E11D48',      // Dark Rose
   },
   accent: {
-    green: '#10B981',     // Emerald green
-    orange: '#F59E0B',    // Amber  
-    red: '#EF4444',       // Red
-    purple: '#A855F7',    // Violet
-    pink: '#EC4899',      // Pink
-    teal: '#14B8A6',      // Teal
-    blue: '#3B82F6',      // Blue
+    green: '#34C759',     // Softer iOS green
+    orange: '#FF9500',    // Softer iOS orange
+    red: '#FF3B30',       // Softer iOS red
+    purple: '#AF52DE',    // Softer purple
+    pink: '#FF2D55',      // Softer pink
+    teal: '#5AC8FA',      // Softer teal
+    blue: '#007AFF',      // iOS blue
   },
   gold: {
     main: '#FFD700',      // Classic gold
@@ -46,9 +46,9 @@ export const COLORS = {
   },
   background: {
     primary: '#FFFFFF',
-    secondary: '#F8FAFC',
-    tertiary: '#F1F5F9',
-    gradient: ['#F8FAFC', '#EEF2FF'], // Subtle indigo tint
+    secondary: '#F5F5F7', // Softer light gray like iOS
+    tertiary: '#F1F1F3', // Even softer for subtle sections
+    gradient: ['#F5F5F7', '#FFFFFF'], // Soft gradient
   },
   text: {
     primary: '#0F172A',
@@ -57,10 +57,10 @@ export const COLORS = {
     inverse: '#FFFFFF',
   },
   meal: {
-    breakfast: '#F59E0B',   // Warm amber for morning
-    lunch: '#10B981',       // Fresh green for midday
-    dinner: '#8B5CF6',      // Purple for evening
-    snack: '#06B6D4',       // Cyan for snacks
+    breakfast: '#FF9500',   // Softer orange for morning
+    lunch: '#34C759',       // Softer green for midday
+    dinner: '#AF52DE',      // Softer purple for evening
+    snack: '#FF2D55',       // Softer pink for snacks
   },
   glass: {
     background: 'rgba(255, 255, 255, 0.85)',
@@ -131,14 +131,14 @@ export const SPACING = {
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 20,
-  '2xl': 24,
-  '3xl': 32,
-  '4xl': 40,
-  '5xl': 48,
+  xl: 24,      // More generous spacing
+  '2xl': 28,
+  '3xl': 36,
+  '4xl': 44,
+  '5xl': 52,
   '6xl': 64,
   screenPadding: 20,
-  cardPadding: 16,
+  cardPadding: 20,  // More padding in cards
 };
 
 export const LAYOUT = {
