@@ -354,7 +354,10 @@ export const useMealEditor = (initialMealType: MealType = 'lunch'): UseMealEdito
                 })),
             };
 
-            const { error } = await addMeal(
+            console.log('Saving meal with type:', state.mealType, 'calories:', state.totals.calories);
+
+            // Add timeout to prevent infinite loading
+            const savePromise = addMeal(
                 foodName,
                 state.totals.calories,
                 state.mealType,
@@ -362,18 +365,55 @@ export const useMealEditor = (initialMealType: MealType = 'lunch'): UseMealEdito
                 analysis as any
             );
 
-            if (error) {
+            const timeoutPromise = new Promise<{ error: Error }>((resolve) => {
+                setTimeout(() => {
+                    resolve({ error: new Error('Save operation timed out after 30 seconds') });
+                }, 30000);
+            });
+
+            const result = await Promise.race([savePromise, timeoutPromise]);
+            
+            console.log('Add meal result:', result);
+            console.log('Result type:', typeof result);
+            console.log('Result keys:', result ? Object.keys(result) : 'null');
+
+            // Check for error - result.error can be Error object or null
+            if (result && typeof result === 'object' && 'error' in result && result.error) {
+                const errorObj = result.error;
+                const errorMessage = errorObj instanceof Error 
+                    ? errorObj.message 
+                    : (typeof errorObj === 'string' ? errorObj : String(errorObj) || 'Failed to save meal');
+                
+                // Check if it's a timeout
+                if (errorMessage.includes('timed out') || errorMessage === 'Save operation timed out after 30 seconds') {
+                    throw new Error('Save operation timed out. Please check your internet connection and try again.');
+                }
+                
+                console.error('Save meal error:', errorMessage);
                 setState(prev => ({
                     ...prev,
                     analysisState: 'error',
-                    error: error.message || 'Failed to save meal',
+                    error: errorMessage,
                 }));
-                return { success: false, error: error.message };
+                return { success: false, error: errorMessage };
+            }
+            
+            // If no error and no data, something went wrong
+            if (result && typeof result === 'object' && !('data' in result) && !('error' in result)) {
+                console.error('Unexpected result format:', result);
+                setState(prev => ({
+                    ...prev,
+                    analysisState: 'error',
+                    error: 'Unexpected response from server',
+                }));
+                return { success: false, error: 'Unexpected response from server' };
             }
 
+            console.log('Meal saved successfully, updating state to saved');
             setState(prev => ({ ...prev, analysisState: 'saved' }));
             return { success: true };
         } catch (error) {
+            console.error('Save meal exception:', error);
             const errorMsg = error instanceof Error ? error.message : 'Save failed';
             setState(prev => ({
                 ...prev,

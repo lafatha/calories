@@ -186,18 +186,21 @@ export const HomeScreen = () => {
             {/* Stats on right */}
             <View style={styles.quickStatsRow}>
               <View style={styles.quickStat}>
-                <Text style={styles.quickStatValue}>{dailyGoal}</Text>
-                <Text style={styles.quickStatLabel}>Goal</Text>
+                <Text style={styles.quickStatValue} numberOfLines={1}>{dailyGoal}</Text>
+                <Text style={styles.quickStatLabel} numberOfLines={1}>Goal</Text>
               </View>
               <View style={styles.quickStatDivider} />
               <View style={styles.quickStat}>
-                <Text style={[
-                  styles.quickStatValue,
-                  isOverGoal && { color: colors.secondary.main }
-                ]}>
+                <Text 
+                  style={[
+                    styles.quickStatValue,
+                    isOverGoal && { color: colors.secondary.main }
+                  ]}
+                  numberOfLines={1}
+                >
                   {isOverGoal ? '+' : ''}{Math.abs(remainingCalories)}
                 </Text>
-                <Text style={styles.quickStatLabel}>{isOverGoal ? 'Over' : 'Left'}</Text>
+                <Text style={styles.quickStatLabel} numberOfLines={1}>{isOverGoal ? 'Over' : 'Left'}</Text>
               </View>
             </View>
           </View>
@@ -220,17 +223,6 @@ export const HomeScreen = () => {
           <View style={styles.calendarHeader}>
             <Calendar size={18} color={colors.primary.main} />
             <Text style={styles.calendarTitle}>{formatDateLabel(selectedDate)}</Text>
-            {!isToday && (
-              <TouchableOpacity
-                style={styles.todayButton}
-                onPress={() => {
-                  setSelectedDate(new Date());
-                  calendarRef.current?.scrollToEnd({ animated: true });
-                }}
-              >
-                <Text style={styles.todayButtonText}>Today</Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           <FlatList
@@ -320,18 +312,12 @@ export const HomeScreen = () => {
                     key={mealType}
                     style={[
                       styles.mealCard,
-                      hasLogged && styles.mealCardLogged,
                       isCurrentMeal && !hasLogged && styles.mealCardCurrent,
                     ]}
                     onPress={() => isToday && navigation.navigate('Camera')}
                     activeOpacity={isToday ? 0.8 : 1}
                     disabled={!isToday}
                   >
-                    {isCurrentMeal && !hasLogged && (
-                      <View style={styles.currentMealBadge}>
-                        <Text style={styles.currentMealText}>NOW</Text>
-                      </View>
-                    )}
 
                     <View style={[
                       styles.mealIconContainer,
@@ -523,26 +509,31 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: THEME.spacing.xl,
   },
   quickStat: {
     alignItems: 'center',
-    paddingHorizontal: THEME.spacing.lg,
+    width: 90,
+    paddingHorizontal: THEME.spacing.xs,
   },
   quickStatValue: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
     color: colors.text.primary,
+    textAlign: 'center',
+    width: '100%',
   },
   quickStatLabel: {
     fontSize: THEME.typography.fontSizes.sm,
     color: colors.text.secondary,
     marginTop: 4,
+    textAlign: 'center',
+    width: '100%',
   },
   quickStatDivider: {
     width: 1,
     height: 40,
     backgroundColor: colors.border.medium,
+    marginHorizontal: THEME.spacing.lg,
   },
   motivationContainer: {
     alignItems: 'center',
@@ -588,17 +579,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.semibold,
     color: colors.text.primary,
-  },
-  todayButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    backgroundColor: colors.primary.main + '20',
-    borderRadius: THEME.layout.borderRadius.full,
-  },
-  todayButtonText: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: colors.primary.main,
-    fontWeight: THEME.typography.fontWeights.semibold,
   },
   calendarList: {
     paddingVertical: 4,
@@ -749,30 +729,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
       elevation: 4,
     }),
   },
-  mealCardLogged: {
-    borderWidth: 2,
-    borderColor: colors.accent.green + '40',
-    backgroundColor: isDark ? colors.accent.green + '10' : colors.accent.green + '05',
-  },
   mealCardCurrent: {
     borderWidth: 2,
     borderColor: colors.primary.main,
     borderStyle: 'dashed',
-  },
-  currentMealBadge: {
-    position: 'absolute',
-    top: -8,
-    right: THEME.spacing.md,
-    backgroundColor: colors.primary.main,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: THEME.layout.borderRadius.full,
-  },
-  currentMealText: {
-    fontSize: THEME.typography.fontSizes.xs,
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: colors.text.inverse,
-    letterSpacing: 0.5,
   },
   mealIconContainer: {
     width: 52,
@@ -796,7 +756,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   mealCaloriesValue: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: colors.accent.green,
+    color: colors.text.primary,
   },
   mealCaloriesUnit: {
     fontSize: THEME.typography.fontSizes.xs,

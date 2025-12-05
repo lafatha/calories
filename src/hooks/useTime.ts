@@ -12,7 +12,7 @@ interface TimeState {
 
 // Get meal type based on hour
 const getMealType = (hour: number): MealType => {
-  if (hour >= 5 && hour < 10) return 'breakfast';
+  if (hour >= 0 && hour < 10) return 'breakfast';
   if (hour >= 10 && hour < 17) return 'lunch';
   return 'dinner';
 };
@@ -21,11 +21,11 @@ const getMealType = (hour: number): MealType => {
 const getMealTimeRange = (mealType: MealType): string => {
   switch (mealType) {
     case 'breakfast':
-      return '5:00 AM - 10:00 AM';
+      return '12:00 AM - 10:00 AM';
     case 'lunch':
       return '10:00 AM - 5:00 PM';
     case 'dinner':
-      return '5:00 PM - 5:00 AM';
+      return '5:00 PM - 12:00 AM';
     default:
       return '';
   }
@@ -126,14 +126,14 @@ export const useNextMealCountdown = (timezone: string = 'Asia/Jakarta') => {
       let targetHour: number;
       let targetMeal: MealType;
 
-      if (hour >= 5 && hour < 10) {
+      if (hour >= 0 && hour < 10) {
         targetHour = 10;
         targetMeal = 'lunch';
       } else if (hour >= 10 && hour < 17) {
         targetHour = 17;
         targetMeal = 'dinner';
       } else {
-        targetHour = 5;
+        targetHour = 0;
         targetMeal = 'breakfast';
       }
 

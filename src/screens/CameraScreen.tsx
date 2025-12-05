@@ -190,10 +190,29 @@ export const CameraScreen = () => {
   };
 
   const handleSaveMeal = async () => {
-    const result = await saveMeal();
-    if (result.success) {
-      Alert.alert('Meal Logged!', 'Your meal has been saved successfully!', [
-        { text: 'OK', onPress: () => navigation.navigate('Main') },
+    try {
+      console.log('[CameraScreen] Starting save...');
+      const result = await saveMeal();
+      console.log('[CameraScreen] Save result:', result);
+      
+      if (result.success) {
+        Alert.alert('Meal Logged!', 'Your meal has been saved successfully!', [
+          { text: 'OK', onPress: () => navigation.navigate('Main') },
+        ]);
+      } else if (result.error) {
+        Alert.alert('Save Failed', result.error, [
+          { text: 'OK', onPress: () => {
+            // Reset state on error so user can try again
+            if (state.analysisState === 'saving' || state.analysisState === 'error') {
+              // State will be reset by useMealEditor, but we can navigate back
+            }
+          }},
+        ]);
+      }
+    } catch (error) {
+      console.error('[CameraScreen] Save meal exception:', error);
+      Alert.alert('Error', 'Failed to save meal. Please try again.', [
+        { text: 'OK' }
       ]);
     }
   };
