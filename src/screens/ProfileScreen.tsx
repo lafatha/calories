@@ -244,11 +244,6 @@ export const ProfileScreen = () => {
             <View style={styles.profileStat}>
               <View style={styles.profileStatIcon}>
                 <Target size={16} color={colors.accent.green} />
-            </View>
-            <View style={styles.profileStatDivider} />
-            <View style={styles.profileStat}>
-              <View style={styles.profileStatIcon}>
-                <Target size={16} color={colors.accent.green} />
               </View>
               <Text style={styles.profileStatValue}>{profile?.daily_calorie_goal || 2000}</Text>
               <Text style={styles.profileStatLabel}>Daily Goal</Text>
