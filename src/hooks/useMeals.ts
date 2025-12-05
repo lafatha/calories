@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Meal, MealType, FoodAnalysis } from '../types';
@@ -37,6 +37,8 @@ export const useMeals = (date?: Date) => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedRef = useRef(false);
+  const lastDateRef = useRef<string | null>(null);
 
   // Memoize dateString to prevent unnecessary re-renders
   const dateString = useMemo(() => {
@@ -46,14 +48,21 @@ export const useMeals = (date?: Date) => {
   }, [date?.getTime()]);
 
   // Fetch meals for the day
-  const fetchMeals = useCallback(async () => {
+  const fetchMeals = useCallback(async (showLoading = false) => {
     if (!user) {
       setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
+    // Only show loading on first fetch or when date changes
+    const isDateChange = lastDateRef.current !== dateString;
+    const shouldShowLoading = !hasFetchedRef.current || isDateChange || showLoading;
+    
+    if (shouldShowLoading) {
+      setIsLoading(true);
+    }
     setError(null);
+    lastDateRef.current = dateString;
 
     try {
       const startOfDay = `${dateString}T00:00:00.000Z`;
@@ -114,6 +123,8 @@ export const useMeals = (date?: Date) => {
           ? Math.min((totalCals / profile.daily_calorie_goal) * 100, 100)
           : 0,
       });
+      
+      hasFetchedRef.current = true;
     } catch (err) {
       console.error('Error fetching meals:', err);
       setError('Failed to load meals');

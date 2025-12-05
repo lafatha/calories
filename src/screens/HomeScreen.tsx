@@ -21,10 +21,6 @@ import {
   Sun,
   Moon,
   Cookie,
-  Apple,
-  Salad,
-  UtensilsCrossed,
-  Lightbulb,
   Sunrise,
   Sunset,
   CloudMoon,
@@ -141,12 +137,6 @@ export const HomeScreen = () => {
         ]}>
           {date.getDate()}
         </Text>
-        {isTodayItem && (
-          <View style={[
-            styles.todayDot,
-            { backgroundColor: isSelected ? colors.text.inverse : colors.primary.main },
-          ]} />
-        )}
       </TouchableOpacity>
     );
   };
@@ -181,7 +171,8 @@ export const HomeScreen = () => {
 
         {/* Main Progress Card */}
         <View style={styles.progressCard}>
-          <View style={styles.progressVisual}>
+          <View style={styles.progressTopRow}>
+            {/* Circle on left */}
             <View style={styles.progressCircleOuter}>
               <View style={[
                 styles.progressCircle,
@@ -192,6 +183,7 @@ export const HomeScreen = () => {
               </View>
             </View>
 
+            {/* Stats on right */}
             <View style={styles.quickStatsRow}>
               <View style={styles.quickStat}>
                 <Text style={styles.quickStatValue}>{dailyGoal}</Text>
@@ -251,8 +243,8 @@ export const HomeScreen = () => {
             contentContainerStyle={styles.calendarList}
             initialScrollIndex={dates.length - 1}
             getItemLayout={(data, index) => ({
-              length: 56,
-              offset: 56 * index,
+              length: 68,
+              offset: 68 * index,
               index,
             })}
           />
@@ -376,56 +368,38 @@ export const HomeScreen = () => {
           <View style={styles.mealItemsSection}>
             <Text style={styles.mealItemsTitle}>Logged Items</Text>
             <View style={styles.mealItemsCard}>
-              {Object.entries(meals).map(([type, items]) =>
-                items.map((meal: Meal, index: number) => (
-                  <View key={meal.id || index} style={styles.mealItem}>
+              {(() => {
+                const allMeals = Object.entries(meals).flatMap(([type, items]) =>
+                  items.map((meal: Meal) => ({ ...meal, type: type as MealType }))
+                );
+                return allMeals.map((meal, index) => (
+                  <View 
+                    key={meal.id || index} 
+                    style={[
+                      styles.mealItem,
+                      index === allMeals.length - 1 && { borderBottomWidth: 0 }
+                    ]}
+                  >
                     <View style={[
                       styles.mealItemDot,
-                      { backgroundColor: colors.meal[type as MealType] }
+                      { backgroundColor: colors.meal[meal.type] }
                     ]} />
                     <View style={styles.mealItemInfo}>
                       <Text style={styles.mealItemName} numberOfLines={1}>
                         {meal.food_name}
                       </Text>
                       <Text style={styles.mealItemType}>
-                        {MEAL_CONFIG[type as MealType].label}
+                        {MEAL_CONFIG[meal.type].label}
                       </Text>
                     </View>
                     <Text style={styles.mealItemCalories}>{meal.calories} kcal</Text>
                   </View>
-                ))
-              )}
+                ));
+              })()}
             </View>
           </View>
         )}
 
-        {/* Tips Card */}
-        {isToday && (
-          <View style={styles.tipsCard}>
-            <View style={styles.tipsHeader}>
-              <View style={styles.tipsIconContainer}>
-                <Lightbulb size={20} color={colors.accent.blue} />
-              </View>
-              <Text style={styles.tipsTitle}>Daily Tip</Text>
-            </View>
-            <Text style={styles.tipsText}>
-              Eating slowly helps you feel full faster and enjoy your food more! Try to take at least 20 minutes for each meal.
-            </Text>
-          </View>
-        )}
-
-        {/* Food Icons Decoration */}
-        <View style={styles.foodDecoration}>
-          <View style={[styles.foodIcon, { backgroundColor: colors.accent.green + '15' }]}>
-            <Apple size={20} color={colors.accent.green} />
-          </View>
-          <View style={[styles.foodIcon, { backgroundColor: colors.accent.orange + '15' }]}>
-            <Salad size={20} color={colors.accent.orange} />
-          </View>
-          <View style={[styles.foodIcon, { backgroundColor: colors.secondary.main + '15' }]}>
-            <UtensilsCrossed size={20} color={colors.secondary.main} />
-          </View>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -511,27 +485,27 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
       elevation: 5,
     }),
   },
-  progressVisual: {
+  progressTopRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: THEME.spacing.xl,
   },
   progressCircleOuter: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: colors.primary.main + '15',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.primary.main + '12',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: THEME.spacing.lg,
   },
   progressCircle: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 6,
+    borderWidth: 4,
     borderColor: colors.primary.main,
   },
   progressCalories: {
@@ -545,30 +519,36 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     marginTop: 2,
   },
   quickStatsRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: THEME.spacing.xl,
   },
   quickStat: {
     alignItems: 'center',
+    paddingHorizontal: THEME.spacing.lg,
   },
   quickStatValue: {
-    fontSize: THEME.typography.fontSizes.lg,
+    fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
     color: colors.text.primary,
   },
   quickStatLabel: {
     fontSize: THEME.typography.fontSizes.sm,
     color: colors.text.secondary,
-    marginTop: 2,
+    marginTop: 4,
   },
   quickStatDivider: {
     width: 1,
-    height: 30,
-    backgroundColor: colors.border.light,
+    height: 40,
+    backgroundColor: colors.border.medium,
   },
   motivationContainer: {
     alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+    paddingTop: THEME.spacing.lg,
   },
   motivationText: {
     fontSize: THEME.typography.fontSizes.md,
@@ -579,16 +559,16 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   progressBar: {
     width: '100%',
-    height: 8,
+    height: 10,
     backgroundColor: colors.background.tertiary,
-    borderRadius: 4,
+    borderRadius: 5,
     marginBottom: THEME.spacing.sm,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: colors.primary.main,
-    borderRadius: 4,
+    borderRadius: 5,
   },
   progressPercent: {
     fontSize: THEME.typography.fontSizes.sm,
@@ -624,9 +604,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     paddingVertical: 4,
   },
   dateItem: {
-    width: 48,
-    height: 68,
-    marginHorizontal: 4,
+    width: 56,
+    height: 56,
+    marginHorizontal: 6,
     borderRadius: THEME.layout.borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -644,17 +624,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   dateWeekday: {
     fontSize: THEME.typography.fontSizes.xs,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   dateNumber: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-  },
-  todayDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 4,
   },
   quickAddButton: {
     flexDirection: 'row',
@@ -851,7 +825,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   mealItemsCard: {
     backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
-    padding: THEME.spacing.md,
+    padding: THEME.spacing.lg,
     // Shadow for logged items card
     ...(isDark ? {
       borderWidth: 1,
@@ -867,77 +841,33 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   mealItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: THEME.spacing.sm,
+    paddingVertical: THEME.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
   },
   mealItemDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     marginRight: THEME.spacing.md,
   },
   mealItemInfo: {
     flex: 1,
   },
   mealItemName: {
-    fontSize: THEME.typography.fontSizes.base,
+    fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.medium,
     color: colors.text.primary,
   },
   mealItemType: {
-    fontSize: THEME.typography.fontSizes.sm,
+    fontSize: THEME.typography.fontSizes.xs,
     color: colors.text.secondary,
+    marginTop: 2,
   },
   mealItemCalories: {
-    fontSize: THEME.typography.fontSizes.base,
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: colors.text.primary,
-  },
-  tipsCard: {
-    backgroundColor: isDark ? colors.accent.blue + '15' : colors.accent.blue + '10',
-    borderRadius: THEME.layout.borderRadius.xl,
-    padding: THEME.spacing.lg,
-    marginBottom: THEME.spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.accent.blue + '30',
-  },
-  tipsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: THEME.spacing.sm,
-    marginBottom: THEME.spacing.sm,
-  },
-  tipsIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: THEME.layout.borderRadius.md,
-    backgroundColor: colors.accent.blue + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tipsTitle: {
-    fontSize: THEME.typography.fontSizes.base,
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: colors.accent.blue,
-  },
-  tipsText: {
     fontSize: THEME.typography.fontSizes.sm,
+    fontWeight: THEME.typography.fontWeights.semibold,
     color: colors.text.primary,
-    lineHeight: 20,
-  },
-  foodDecoration: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: THEME.spacing.md,
-    marginTop: THEME.spacing.sm,
-  },
-  foodIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
 

@@ -28,9 +28,6 @@ export const BottomTabNavigator = () => {
           size={focused ? 24 : 22}
           strokeWidth={focused ? 2.5 : 2}
         />
-        {focused && (
-          <View style={[styles.activeIndicator, { backgroundColor: colors.primary.main }]} />
-        )}
       </View>
     );
   };
@@ -106,12 +103,5 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: THEME.layout.borderRadius.lg,
-  },
-  activeIndicator: {
-    position: 'absolute',
-    bottom: 6,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
   },
 });

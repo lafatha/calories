@@ -1,4 +1,6 @@
 // Modern Blue-Purple Premium Theme for Calories AI App
+import { Platform } from 'react-native';
+
 export const COLORS = {
   primary: {
     main: '#4F46E5',      // Electric Indigo
@@ -69,20 +71,36 @@ export const COLORS = {
 
 export const TYPOGRAPHY = {
   fontFamily: {
-    primary: 'System',
-    mono: 'Menlo',
+    // San Francisco on iOS, Roboto on Android (system defaults that match Apple style)
+    primary: Platform.select({
+      ios: 'System',
+      android: 'System',
+      default: 'System',
+    }),
+    // SF Pro Display style for larger text
+    display: Platform.select({
+      ios: 'System',
+      android: 'System',
+      default: 'System',
+    }),
+    mono: Platform.select({
+      ios: 'Menlo',
+      android: 'monospace',
+      default: 'monospace',
+    }),
   },
+  // Apple-style font sizes (following SF Pro guidelines)
   fontSizes: {
-    xs: 11,
-    sm: 13,
-    base: 15,
-    md: 17,
-    lg: 20,
-    xl: 24,
-    '2xl': 28,
-    '3xl': 34,
-    '4xl': 42,
-    hero: 52,
+    xs: 11,      // Caption 2
+    sm: 13,      // Footnote
+    base: 15,    // Subheadline
+    md: 17,      // Body (Apple's default body size)
+    lg: 20,      // Title 3
+    xl: 22,      // Title 2
+    '2xl': 28,   // Title 1
+    '3xl': 34,   // Large Title
+    '4xl': 40,
+    hero: 48,
   },
   fontWeights: {
     regular: '400' as const,
@@ -90,18 +108,21 @@ export const TYPOGRAPHY = {
     semibold: '600' as const,
     bold: '700' as const,
     heavy: '800' as const,
+    black: '900' as const,
   },
   lineHeights: {
     tight: 1.1,
-    snug: 1.25,
-    normal: 1.4,
-    relaxed: 1.6,
+    snug: 1.2,
+    normal: 1.35,   // Apple uses tighter line heights
+    relaxed: 1.5,
   },
+  // Apple-style letter spacing (SF Pro uses negative tracking for large text)
   letterSpacing: {
-    tight: -0.5,
+    tighter: -0.8,
+    tight: -0.4,
     normal: 0,
-    wide: 0.5,
-    wider: 1,
+    wide: 0.3,
+    wider: 0.6,
   },
 };
 

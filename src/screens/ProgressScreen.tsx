@@ -19,7 +19,6 @@ import {
   Moon,
   Cookie,
   TrendingUp,
-  Award,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -320,7 +319,7 @@ export const ProgressScreen = () => {
             {/* Dynamic goal line - positioned based on dailyGoal relative to maxCalories */}
             <View style={[
               styles.goalLineContainer,
-              { bottom: 24 + ((dailyGoal / maxCalories) * 100) }
+              { bottom: 40 + ((dailyGoal / maxCalories) * 100) }
             ]}>
               <View style={styles.goalLine} />
               <Text style={styles.goalLineText}>{dailyGoal}</Text>
@@ -388,20 +387,6 @@ export const ProgressScreen = () => {
           </View>
         </View>
 
-        {/* Achievement Card */}
-        <View style={styles.achievementCard}>
-          <View style={styles.achievementIcon}>
-            <Award size={24} color={colors.accent.orange} />
-          </View>
-          <View style={styles.achievementText}>
-            <Text style={styles.achievementTitle}>
-              {consecutiveStreak >= 7 ? 'Perfect Week!' : `${7 - consecutiveStreak} more days to go!`}
-            </Text>
-            <Text style={styles.achievementSubtitle}>
-              Complete a full week on target to earn the Champion badge
-            </Text>
-          </View>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -688,37 +673,5 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
     color: colors.primary.main,
-  },
-  achievementCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.card,
-    borderRadius: THEME.layout.borderRadius.xl,
-    padding: THEME.spacing.lg,
-    gap: THEME.spacing.md,
-    borderWidth: 1,
-    borderColor: colors.accent.orange + '30',
-  },
-  achievementIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: THEME.layout.borderRadius.lg,
-    backgroundColor: colors.accent.orange + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  achievementText: {
-    flex: 1,
-  },
-  achievementTitle: {
-    fontSize: THEME.typography.fontSizes.base,
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: colors.text.primary,
-    marginBottom: 2,
-  },
-  achievementSubtitle: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: colors.text.secondary,
-    lineHeight: 18,
   },
 });
