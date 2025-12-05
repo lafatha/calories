@@ -10,6 +10,7 @@ import {
   Modal,
   FlatList,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -41,7 +42,7 @@ import { TIMEZONES } from '../constants/timezones';
 import { TimezoneOption } from '../types';
 
 export const ProfileScreen = () => {
-  const { user, profile, signOut, updateProfile } = useAuth();
+  const { user, profile, signOut, updateProfile, isSigningOut } = useAuth();
   const { isDark, themeMode, setThemeMode, colors } = useTheme();
   const { formattedTime, formattedDate } = useTime(profile?.timezone);
   const { daysOnTrack } = useWeeklyStats();
@@ -93,7 +94,21 @@ export const ProfileScreen = () => {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: signOut },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await signOut();
+            if (error) {
+              // Show error but user is still logged out locally
+              Alert.alert(
+                'Notice',
+                'You have been signed out locally. If you experience issues, please try signing in again.',
+                [{ text: 'OK' }]
+              );
+            }
+          },
+        },
       ]
     );
   };
@@ -366,9 +381,19 @@ export const ProfileScreen = () => {
         </View>
 
         {/* Sign Out Button */}
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <LogOut size={20} color={colors.secondary.main} />
-          <Text style={styles.signOutText}>Sign Out</Text>
+        <TouchableOpacity
+          style={[styles.signOutButton, isSigningOut && styles.signOutButtonDisabled]}
+          onPress={handleSignOut}
+          disabled={isSigningOut}
+        >
+          {isSigningOut ? (
+            <ActivityIndicator size="small" color={colors.secondary.main} />
+          ) : (
+            <LogOut size={20} color={colors.secondary.main} />
+          )}
+          <Text style={styles.signOutText}>
+            {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+          </Text>
         </TouchableOpacity>
 
         {/* App Version */}
@@ -719,6 +744,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     marginBottom: THEME.spacing.lg,
     borderWidth: 1,
     borderColor: colors.secondary.main + '25',
+  },
+  signOutButtonDisabled: {
+    opacity: 0.6,
   },
   signOutText: {
     fontSize: THEME.typography.fontSizes.base,

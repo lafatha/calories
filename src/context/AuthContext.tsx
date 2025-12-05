@@ -8,10 +8,11 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
+  isSigningOut: boolean;
   isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, userData: SignUpData) => Promise<{ error: Error | null; needsEmailConfirmation?: boolean }>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<{ error: Error | null }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
 }
@@ -41,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Fetch user profile
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
@@ -224,19 +226,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Sign out
-  const signOut = async () => {
+  const signOut = async (): Promise<{ error: Error | null }> => {
+    setIsSigningOut(true);
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.log('Sign out error:', error.message);
+        // Still clear local state even if API fails
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        return { error: error as unknown as Error };
       }
+      // Clear local state on success
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      return { error: null };
     } catch (error) {
       console.log('Sign out exception:', error);
-    } finally {
       // Always clear local state regardless of API result
       setSession(null);
       setUser(null);
       setProfile(null);
+      return { error: error as Error };
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -279,6 +294,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     profile,
     isLoading,
+    isSigningOut,
     isAuthenticated: !!session && !!user,
     signIn,
     signUp,
