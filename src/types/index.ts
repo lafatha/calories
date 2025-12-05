@@ -1,4 +1,6 @@
 export * from './database';
+export * from './mealEditor';
+
 
 // Auth Types
 export interface AuthState {

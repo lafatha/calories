@@ -292,7 +292,7 @@ export const HomeScreen = () => {
             <View style={styles.errorContainer}>
               <AlertCircle size={32} color={colors.semantic.error} />
               <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={refresh}>
+              <TouchableOpacity style={styles.retryButton} onPress={() => refresh()}>
                 <RefreshCw size={16} color={colors.text.inverse} />
                 <Text style={styles.retryText}>Retry</Text>
               </TouchableOpacity>
@@ -301,65 +301,65 @@ export const HomeScreen = () => {
 
           {/* Meals Grid - only show when not loading and no error */}
           {!isLoading && !error && (
-          <View style={styles.mealsGrid}>
-            {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((mealType) => {
-              const config = MEAL_CONFIG[mealType];
-              const Icon = config.icon;
-              const mealCalories = mealType === 'breakfast'
-                ? stats.breakfastCalories
-                : mealType === 'lunch'
-                  ? stats.lunchCalories
-                  : mealType === 'dinner'
-                    ? stats.dinnerCalories
-                    : stats.snackCalories;
-              const hasLogged = mealCalories > 0;
-              const isCurrentMeal = isToday && currentMealType === mealType;
+            <View style={styles.mealsGrid}>
+              {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((mealType) => {
+                const config = MEAL_CONFIG[mealType];
+                const Icon = config.icon;
+                const mealCalories = mealType === 'breakfast'
+                  ? stats.breakfastCalories
+                  : mealType === 'lunch'
+                    ? stats.lunchCalories
+                    : mealType === 'dinner'
+                      ? stats.dinnerCalories
+                      : stats.snackCalories;
+                const hasLogged = mealCalories > 0;
+                const isCurrentMeal = isToday && currentMealType === mealType;
 
-              return (
-                <TouchableOpacity
-                  key={mealType}
-                  style={[
-                    styles.mealCard,
-                    hasLogged && styles.mealCardLogged,
-                    isCurrentMeal && !hasLogged && styles.mealCardCurrent,
-                  ]}
-                  onPress={() => isToday && navigation.navigate('Camera')}
-                  activeOpacity={isToday ? 0.8 : 1}
-                  disabled={!isToday}
-                >
-                  {isCurrentMeal && !hasLogged && (
-                    <View style={styles.currentMealBadge}>
-                      <Text style={styles.currentMealText}>NOW</Text>
+                return (
+                  <TouchableOpacity
+                    key={mealType}
+                    style={[
+                      styles.mealCard,
+                      hasLogged && styles.mealCardLogged,
+                      isCurrentMeal && !hasLogged && styles.mealCardCurrent,
+                    ]}
+                    onPress={() => isToday && navigation.navigate('Camera')}
+                    activeOpacity={isToday ? 0.8 : 1}
+                    disabled={!isToday}
+                  >
+                    {isCurrentMeal && !hasLogged && (
+                      <View style={styles.currentMealBadge}>
+                        <Text style={styles.currentMealText}>NOW</Text>
+                      </View>
+                    )}
+
+                    <View style={[
+                      styles.mealIconContainer,
+                      { backgroundColor: colors.meal[mealType] + '15' }
+                    ]}>
+                      <Icon size={24} color={colors.meal[mealType]} />
                     </View>
-                  )}
 
-                  <View style={[
-                    styles.mealIconContainer,
-                    { backgroundColor: colors.meal[mealType] + '15' }
-                  ]}>
-                    <Icon size={24} color={colors.meal[mealType]} />
-                  </View>
+                    <Text style={styles.mealLabel}>{config.label}</Text>
 
-                  <Text style={styles.mealLabel}>{config.label}</Text>
-
-                  {hasLogged ? (
-                    <View style={styles.mealCaloriesContainer}>
-                      <Text style={styles.mealCaloriesValue}>{mealCalories}</Text>
-                      <Text style={styles.mealCaloriesUnit}>kcal</Text>
-                    </View>
-                  ) : isToday ? (
-                    <TouchableOpacity
-                      style={[styles.addMealButton, { backgroundColor: colors.meal[mealType] }]}
-                    >
-                      <Plus size={16} color={colors.text.inverse} />
-                    </TouchableOpacity>
-                  ) : (
-                    <Text style={styles.noMealText}>No meal</Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                    {hasLogged ? (
+                      <View style={styles.mealCaloriesContainer}>
+                        <Text style={styles.mealCaloriesValue}>{mealCalories}</Text>
+                        <Text style={styles.mealCaloriesUnit}>kcal</Text>
+                      </View>
+                    ) : isToday ? (
+                      <TouchableOpacity
+                        style={[styles.addMealButton, { backgroundColor: colors.meal[mealType] }]}
+                      >
+                        <Plus size={16} color={colors.text.inverse} />
+                      </TouchableOpacity>
+                    ) : (
+                      <Text style={styles.noMealText}>No meal</Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           )}
         </View>
 
@@ -373,8 +373,8 @@ export const HomeScreen = () => {
                   items.map((meal: Meal) => ({ ...meal, type: type as MealType }))
                 );
                 return allMeals.map((meal, index) => (
-                  <View 
-                    key={meal.id || index} 
+                  <View
+                    key={meal.id || index}
                     style={[
                       styles.mealItem,
                       index === allMeals.length - 1 && { borderBottomWidth: 0 }
@@ -382,14 +382,14 @@ export const HomeScreen = () => {
                   >
                     <View style={[
                       styles.mealItemDot,
-                      { backgroundColor: colors.meal[meal.type] }
+                      { backgroundColor: colors.meal[meal.type as MealType] }
                     ]} />
                     <View style={styles.mealItemInfo}>
                       <Text style={styles.mealItemName} numberOfLines={1}>
                         {meal.food_name}
                       </Text>
                       <Text style={styles.mealItemType}>
-                        {MEAL_CONFIG[meal.type].label}
+                        {MEAL_CONFIG[meal.type as MealType].label}
                       </Text>
                     </View>
                     <Text style={styles.mealItemCalories}>{meal.calories} kcal</Text>
