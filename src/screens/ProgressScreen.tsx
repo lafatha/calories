@@ -30,17 +30,17 @@ export const ProgressScreen = () => {
   const { profile } = useAuth();
   const { colors, isDark } = useTheme();
   const { stats } = useMeals();
-  const { days, averageCalories, daysOnTrack } = useWeeklyStats();
+  const { days, averageCalories, daysOnTrack, consecutiveStreak } = useWeeklyStats();
 
   const dailyGoal = profile?.daily_calorie_goal || 2000;
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const maxCalories = Math.max(...days.map(d => d.calories), dailyGoal);
 
   const getMotivation = () => {
-    if (daysOnTrack >= 7) return "Perfect week! You're unstoppable!";
-    if (daysOnTrack >= 5) return "Amazing streak! Keep it going!";
-    if (daysOnTrack >= 3) return "Building great habits!";
-    if (daysOnTrack >= 1) return "Good start! Stay consistent!";
+    if (consecutiveStreak >= 7) return "Perfect week! You're unstoppable!";
+    if (consecutiveStreak >= 5) return "Amazing streak! Keep it going!";
+    if (consecutiveStreak >= 3) return "Building great habits!";
+    if (consecutiveStreak >= 1) return "Good start! Stay consistent!";
     return "Every day is a fresh start!";
   };
 
@@ -71,10 +71,10 @@ export const ProgressScreen = () => {
             <View style={styles.streakInner}>
               <Flame
                 size={28}
-                color={daysOnTrack > 0 ? colors.accent.orange : colors.text.tertiary}
-                fill={daysOnTrack > 0 ? colors.accent.orange : 'transparent'}
+                color={consecutiveStreak > 0 ? colors.accent.orange : colors.text.tertiary}
+                fill={consecutiveStreak > 0 ? colors.accent.orange : 'transparent'}
               />
-              <Text style={styles.streakNumber}>{daysOnTrack}</Text>
+              <Text style={styles.streakNumber}>{consecutiveStreak}</Text>
             </View>
             {[...Array(7)].map((_, i) => (
               <View
@@ -87,7 +87,7 @@ export const ProgressScreen = () => {
                       { translateY: -48 },
                     ],
                   },
-                  i < daysOnTrack && styles.ringDotActive,
+                  i < consecutiveStreak && styles.ringDotActive,
                 ]}
               />
             ))}
@@ -267,7 +267,7 @@ export const ProgressScreen = () => {
           </View>
           <View style={styles.achievementText}>
             <Text style={styles.achievementTitle}>
-              {daysOnTrack >= 7 ? 'Perfect Week!' : `${7 - daysOnTrack} more days to go!`}
+              {consecutiveStreak >= 7 ? 'Perfect Week!' : `${7 - consecutiveStreak} more days to go!`}
             </Text>
             <Text style={styles.achievementSubtitle}>
               Complete a full week on target to earn the Champion badge

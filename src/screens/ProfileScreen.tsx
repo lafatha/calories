@@ -37,15 +37,16 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTime } from '../hooks/useTime';
 import { useWeeklyStats } from '../hooks/useMeals';
-import { THEME } from '../constants/theme';
+import { THEME, COLORS } from '../constants/theme';
 import { TIMEZONES } from '../constants/timezones';
 import { TimezoneOption } from '../types';
+import { GoldShimmer, GoldShimmerBox } from '../components/GoldShimmer';
 
 export const ProfileScreen = () => {
   const { user, profile, signOut, updateProfile, isSigningOut } = useAuth();
   const { isDark, themeMode, setThemeMode, colors } = useTheme();
   const { formattedTime, formattedDate } = useTime(profile?.timezone);
-  const { daysOnTrack } = useWeeklyStats();
+  const { consecutiveStreak } = useWeeklyStats();
 
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [calorieGoal, setCalorieGoal] = useState(
@@ -55,6 +56,9 @@ export const ProfileScreen = () => {
   const [showTimezonePicker, setShowTimezonePicker] = useState(false);
 
   const selectedTimezone = TIMEZONES.find((tz) => tz.value === profile?.timezone);
+  
+  // Check if user has an active streak (at least 1 day)
+  const hasActiveStreak = consecutiveStreak > 0;
 
   const handleSaveGoal = async () => {
     const newGoal = parseInt(calorieGoal, 10);
@@ -173,15 +177,32 @@ export const ProfileScreen = () => {
 
         {/* Profile Hero Card */}
         <View style={styles.profileCard}>
-          {/* Avatar with Ring */}
+          {/* Avatar with Gold Shimmer Ring when streak is active */}
           <View style={styles.avatarSection}>
-            <View style={styles.avatarRing}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{getInitials()}</Text>
+            <GoldShimmer
+              isActive={hasActiveStreak}
+              borderRadius={50}
+              borderWidth={3}
+              style={styles.avatarRingContainer}
+            >
+              <View style={[
+                styles.avatarRing,
+                hasActiveStreak && { borderColor: COLORS.gold.main }
+              ]}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{getInitials()}</Text>
+                </View>
               </View>
-            </View>
-            <View style={styles.levelBadge}>
-              <Star size={14} color={colors.accent.orange} fill={colors.accent.orange} />
+            </GoldShimmer>
+            <View style={[
+              styles.levelBadge,
+              hasActiveStreak && { backgroundColor: COLORS.gold.main + '20', borderColor: COLORS.gold.main }
+            ]}>
+              <Star 
+                size={14} 
+                color={hasActiveStreak ? COLORS.gold.main : colors.accent.orange} 
+                fill={hasActiveStreak ? COLORS.gold.main : colors.accent.orange} 
+              />
             </View>
           </View>
 
@@ -190,14 +211,39 @@ export const ProfileScreen = () => {
           </Text>
           <Text style={styles.userHandle}>@{profile?.username || 'username'}</Text>
 
-          {/* Stats Row */}
+          {/* Stats Row with Gold Shimmer for Streak */}
           <View style={styles.profileStats}>
+            <GoldShimmerBox
+              isActive={hasActiveStreak}
+              borderRadius={16}
+              style={styles.streakStatContainer}
+            >
+              <View style={styles.profileStat}>
+                <View style={styles.profileStatIcon}>
+                  <Flame 
+                    size={18} 
+                    color={hasActiveStreak ? COLORS.gold.main : colors.accent.orange} 
+                    fill={hasActiveStreak ? COLORS.gold.shimmer : undefined}
+                  />
+                </View>
+                <Text style={[
+                  styles.profileStatValue,
+                  hasActiveStreak && { color: COLORS.gold.dark }
+                ]}>
+                  {consecutiveStreak}
+                </Text>
+                <Text style={[
+                  styles.profileStatLabel,
+                  hasActiveStreak && { color: COLORS.gold.dark }
+                ]}>
+                  Day Streak
+                </Text>
+              </View>
+            </GoldShimmerBox>
+            <View style={styles.profileStatDivider} />
             <View style={styles.profileStat}>
               <View style={styles.profileStatIcon}>
-                <Flame size={16} color={colors.accent.orange} />
-              </View>
-              <Text style={styles.profileStatValue}>{daysOnTrack}</Text>
-              <Text style={styles.profileStatLabel}>Day Streak</Text>
+                <Target size={16} color={colors.accent.green} />
             </View>
             <View style={styles.profileStatDivider} />
             <View style={styles.profileStat}>
@@ -485,20 +531,23 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     position: 'relative',
     marginBottom: THEME.spacing.lg,
   },
+  avatarRingContainer: {
+    padding: 0,
+  },
   avatarRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 94,
+    height: 94,
+    borderRadius: 47,
     padding: 4,
-    borderWidth: 3,
-    borderColor: colors.primary.main,
+    borderWidth: 0,
+    borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatar: {
     width: '100%',
     height: '100%',
-    borderRadius: 46,
+    borderRadius: 43,
     backgroundColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
@@ -537,9 +586,13 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     marginBottom: THEME.spacing.lg,
   },
+  streakStatContainer: {
+    paddingVertical: THEME.spacing.sm,
+    paddingHorizontal: THEME.spacing.md,
+  },
   profileStat: {
     alignItems: 'center',
-    paddingHorizontal: THEME.spacing.xl,
+    paddingHorizontal: THEME.spacing.lg,
   },
   profileStatIcon: {
     marginBottom: 4,

@@ -210,17 +210,19 @@ export const useMeals = (date?: Date) => {
   };
 };
 
-// Hook for weekly stats
+// Hook for weekly stats with proper consecutive day streak calculation
 export const useWeeklyStats = () => {
   const { user, profile } = useAuth();
   const [weeklyData, setWeeklyData] = useState<{
-    days: { date: string; calories: number; goalMet: boolean }[];
+    days: { date: string; calories: number; goalMet: boolean; hasEntries: boolean }[];
     averageCalories: number;
     daysOnTrack: number;
+    consecutiveStreak: number;
   }>({
     days: [],
     averageCalories: 0,
     daysOnTrack: 0,
+    consecutiveStreak: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -234,14 +236,15 @@ export const useWeeklyStats = () => {
 
     try {
       const today = new Date();
-      const weekAgo = new Date(today);
-      weekAgo.setDate(today.getDate() - 6);
+      // Fetch last 90 days of data to calculate proper streak
+      const ninetyDaysAgo = new Date(today);
+      ninetyDaysAgo.setDate(today.getDate() - 90);
 
       const { data, error } = await supabase
         .from('meals')
         .select('logged_at, calories')
         .eq('user_id', user.id)
-        .gte('logged_at', weekAgo.toISOString())
+        .gte('logged_at', ninetyDaysAgo.toISOString())
         .lte('logged_at', today.toISOString());
 
       if (error) throw error;
@@ -253,7 +256,25 @@ export const useWeeklyStats = () => {
         dailyCalories[date] = (dailyCalories[date] || 0) + meal.calories;
       });
 
-      // Create 7-day array
+      // Calculate consecutive day streak (counting backward from today)
+      let consecutiveStreak = 0;
+      const checkDate = new Date(today);
+      
+      // Check consecutive days starting from today
+      for (let i = 0; i < 90; i++) {
+        const dateStr = checkDate.toISOString().split('T')[0];
+        const hasEntries = (dailyCalories[dateStr] || 0) > 0;
+        
+        if (hasEntries) {
+          consecutiveStreak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          // Streak broken - stop counting
+          break;
+        }
+      }
+
+      // Create 7-day array for weekly display
       const days = [];
       let totalCalories = 0;
       let daysOnTrack = 0;
@@ -263,11 +284,12 @@ export const useWeeklyStats = () => {
         date.setDate(today.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
         const calories = dailyCalories[dateStr] || 0;
+        const hasEntries = calories > 0;
         const goalMet = profile?.daily_calorie_goal 
           ? calories <= profile.daily_calorie_goal && calories >= profile.daily_calorie_goal * 0.8
           : false;
 
-        days.push({ date: dateStr, calories, goalMet });
+        days.push({ date: dateStr, calories, goalMet, hasEntries });
         totalCalories += calories;
         if (goalMet) daysOnTrack++;
       }
@@ -276,6 +298,7 @@ export const useWeeklyStats = () => {
         days,
         averageCalories: Math.round(totalCalories / 7),
         daysOnTrack,
+        consecutiveStreak,
       });
     } catch (err) {
       console.error('Error fetching weekly stats:', err);

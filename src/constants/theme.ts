@@ -20,6 +20,12 @@ export const COLORS = {
     teal: '#14B8A6',      // Teal
     blue: '#3B82F6',      // Blue
   },
+  gold: {
+    main: '#FFD700',      // Classic gold
+    light: '#FFE55C',     // Light gold / shine
+    dark: '#B8860B',      // Dark goldenrod
+    shimmer: '#FFA500',   // Orange-gold for shimmer
+  },
   neutral: {
     white: '#FFFFFF',
     offWhite: '#FAFBFC',
@@ -216,6 +222,8 @@ export const GRADIENTS = {
   purple: ['#8B5CF6', '#A855F7'],
   dark: ['#1E293B', '#0F172A'],
   glass: ['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)'],
+  gold: ['#FFD700', '#FFA500', '#FFD700'], // Gold shimmer gradient
+  goldShimmer: ['#B8860B', '#FFD700', '#FFE55C', '#FFD700', '#B8860B'],
 };
 
 export const THEME = {

@@ -69,7 +69,7 @@ export const HomeScreen = () => {
   const { profile } = useAuth();
   const { colors, isDark } = useTheme();
   const { greeting, currentMealType } = useTime(profile?.timezone);
-  const { daysOnTrack } = useWeeklyStats();
+  const { consecutiveStreak } = useWeeklyStats();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const calendarRef = useRef<FlatList>(null);
@@ -171,10 +171,10 @@ export const HomeScreen = () => {
             </View>
           </View>
 
-          {daysOnTrack > 0 && (
+          {consecutiveStreak > 0 && (
             <View style={styles.streakContainer}>
               <Flame size={18} color={colors.accent.orange} fill={colors.accent.orange} />
-              <Text style={styles.streakCount}>{daysOnTrack}</Text>
+              <Text style={styles.streakCount}>{consecutiveStreak}</Text>
             </View>
           )}
         </View>
