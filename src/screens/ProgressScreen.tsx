@@ -28,42 +28,19 @@ import { THEME, COLORS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
 
-// Gold Shimmer Ring Component with rotating shine effect
+// Gold Ring Component - simple gold ring without animation
 const GoldShimmerRing: React.FC<{
   size: number;
   strokeWidth: number;
   progress: number; // 0-7 for days
   children: React.ReactNode;
 }> = ({ size, strokeWidth, progress, children }) => {
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (progress <= 0) return;
-
-    // Rotating shine animation - continuous loop
-    const rotate = Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 2500,
-        useNativeDriver: true,
-      })
-    );
-    rotate.start();
-
-    return () => rotate.stop();
-  }, [progress, rotateAnim]);
-
-  const rotation = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
   const innerSize = size - strokeWidth * 2;
   const isActive = progress > 0;
 
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* Background ring - gray */}
+      {/* Background ring - gray when inactive, gold when active */}
       <View
         style={{
           position: 'absolute',
@@ -71,58 +48,14 @@ const GoldShimmerRing: React.FC<{
           height: size,
           borderRadius: size / 2,
           borderWidth: strokeWidth,
-          borderColor: '#E5E7EB',
+          borderColor: isActive ? COLORS.gold.main : '#E5E7EB',
+          shadowColor: isActive ? COLORS.gold.main : 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: isActive ? 0.5 : 0,
+          shadowRadius: 10,
+          elevation: isActive && Platform.OS === 'android' ? 6 : 0,
         }}
       />
-      
-      {/* Gold ring - full solid gold when active */}
-      {isActive && (
-        <View
-          style={{
-            position: 'absolute',
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            borderWidth: strokeWidth,
-            borderColor: COLORS.gold.main,
-            shadowColor: COLORS.gold.main,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.6,
-            shadowRadius: 10,
-            elevation: Platform.OS === 'android' ? 8 : 0,
-          }}
-        />
-      )}
-
-      {/* Rotating shine highlight */}
-      {isActive && (
-        <Animated.View
-          style={{
-            position: 'absolute',
-            width: size,
-            height: size,
-            transform: [{ rotate: rotation }],
-          }}
-        >
-          {/* Shine spot at top */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: size / 2 - 8,
-              width: 16,
-              height: 16,
-              borderRadius: 8,
-              backgroundColor: COLORS.gold.light,
-              shadowColor: COLORS.gold.light,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 1,
-              shadowRadius: 8,
-              elevation: 10,
-            }}
-          />
-        </Animated.View>
-      )}
 
       {/* Inner circle with children */}
       <View
@@ -293,20 +226,20 @@ export const ProgressScreen = () => {
           <View style={styles.weekProgress}>
             {days.map((day, index) => {
               const isToday = new Date().toDateString() === new Date(day.date).toDateString();
-              const isCompleted = day.goalMet;
+              const hasLoggedCalories = day.calories > 0; // User logged any calories this day
               return (
                 <View key={index} style={styles.dayColumn}>
                   <GoldShimmerDayBox
-                    isCompleted={isCompleted}
+                    isCompleted={hasLoggedCalories}
                     isToday={isToday}
                     colors={colors}
                   >
-                    {isCompleted && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+                    {null}
                   </GoldShimmerDayBox>
                   <Text style={[
                     styles.dayLabel,
                     isToday && styles.dayLabelToday,
-                    isCompleted && styles.dayLabelCompleted
+                    hasLoggedCalories && styles.dayLabelCompleted
                   ]}>
                     {weekDays[new Date(day.date).getDay()].charAt(0)}
                   </Text>
