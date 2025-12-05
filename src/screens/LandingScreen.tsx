@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Camera, TrendingUp, Brain, Heart, Sparkles, Salad, Apple, Carrot, Leaf } from 'lucide-react-native';
 import { Button } from '../components/Button';
+import { useTheme } from '../context/ThemeContext';
 import { THEME } from '../constants/theme';
 import { RootStackParamList } from '../types';
 
@@ -20,33 +21,36 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Landing'>;
 
 export const LandingScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors, isDark } = useTheme();
 
   const features = [
     {
-      icon: <Camera size={22} color={THEME.colors.accent.orange} />,
+      icon: <Camera size={22} color={colors.accent.orange} />,
       title: 'Snap & Track',
-      bgColor: THEME.colors.accent.orange + '15',
+      bgColor: colors.accent.orange + '15',
     },
     {
-      icon: <Brain size={22} color={THEME.colors.accent.purple} />,
+      icon: <Brain size={22} color={colors.accent.purple} />,
       title: 'AI Powered',
-      bgColor: THEME.colors.accent.purple + '15',
+      bgColor: colors.accent.purple + '15',
     },
     {
-      icon: <TrendingUp size={22} color={THEME.colors.accent.green} />,
+      icon: <TrendingUp size={22} color={colors.accent.green} />,
       title: 'Track Goals',
-      bgColor: THEME.colors.accent.green + '15',
+      bgColor: colors.accent.green + '15',
     },
     {
-      icon: <Heart size={22} color={THEME.colors.secondary.main} />,
+      icon: <Heart size={22} color={colors.secondary.main} />,
       title: 'Stay Healthy',
-      bgColor: THEME.colors.secondary.main + '15',
+      bgColor: colors.secondary.main + '15',
     },
   ];
 
+  const styles = createStyles(colors, isDark);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor={THEME.colors.neutral.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background.primary} />
 
       {/* Background Decorations */}
       <View style={styles.bgCircle1} />
@@ -58,22 +62,22 @@ export const LandingScreen = () => {
         {/* Main Illustration - Food Icons */}
         <View style={styles.illustrationContainer}>
           <View style={styles.mainIconCircle}>
-            <Salad size={44} color={THEME.colors.primary.main} />
+            <Salad size={44} color={colors.primary.main} />
           </View>
           <View style={[styles.floatingIcon, styles.floatingIcon1]}>
-            <Apple size={20} color={THEME.colors.accent.green} />
+            <Apple size={20} color={colors.accent.green} />
           </View>
           <View style={[styles.floatingIcon, styles.floatingIcon2]}>
-            <Carrot size={18} color={THEME.colors.accent.orange} />
+            <Carrot size={18} color={colors.accent.orange} />
           </View>
           <View style={[styles.floatingIcon, styles.floatingIcon3]}>
-            <Leaf size={16} color={THEME.colors.accent.green} />
+            <Leaf size={16} color={colors.accent.green} />
           </View>
         </View>
 
         <Text style={styles.title}>Calories AI</Text>
         <View style={styles.taglineContainer}>
-          <Sparkles size={18} color={THEME.colors.primary.main} />
+          <Sparkles size={18} color={colors.primary.main} />
           <Text style={styles.tagline}>Your Smart Nutrition Companion</Text>
         </View>
         <Text style={styles.subtitle}>
@@ -118,7 +122,7 @@ export const LandingScreen = () => {
           onPress={() => navigation.navigate('Signup')}
           size="lg"
           fullRounded
-          icon={<TrendingUp size={18} color={THEME.colors.neutral.white} />}
+          icon={<TrendingUp size={18} color={colors.text.inverse} />}
           iconPosition="right"
           style={styles.primaryButton}
         />
@@ -138,10 +142,10 @@ export const LandingScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.primary,
     paddingHorizontal: THEME.spacing.screenPadding,
   },
   bgCircle1: {
@@ -151,7 +155,7 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderRadius: 125,
-    backgroundColor: THEME.colors.primary.light + '10',
+    backgroundColor: colors.primary.light + '10',
   },
   bgCircle2: {
     position: 'absolute',
@@ -160,7 +164,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: THEME.colors.accent.orange + '08',
+    backgroundColor: colors.accent.orange + '08',
   },
   bgCircle3: {
     position: 'absolute',
@@ -169,7 +173,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: THEME.colors.accent.green + '08',
+    backgroundColor: colors.accent.green + '08',
   },
   heroSection: {
     alignItems: 'center',
@@ -188,20 +192,23 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: THEME.colors.primary.light + '20',
+    backgroundColor: colors.primary.light + '20',
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.md,
+    ...(isDark ? {} : THEME.shadows.md),
   },
   floatingIcon: {
     position: 'absolute',
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.sm,
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : THEME.shadows.sm),
   },
   floatingIcon1: {
     top: 5,
@@ -218,7 +225,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: THEME.typography.fontSizes['3xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: THEME.spacing.sm,
     letterSpacing: THEME.typography.letterSpacing.tight,
   },
@@ -230,12 +237,12 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: THEME.typography.fontSizes.md,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
   subtitle: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -257,15 +264,18 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.xs,
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : THEME.shadows.xs),
   },
   featureTitle: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
   },
   socialProof: {
     flexDirection: 'row',
@@ -285,34 +295,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: THEME.colors.neutral.white,
+    borderColor: colors.background.primary,
   },
   avatar1: {
     zIndex: 3,
-    backgroundColor: THEME.colors.accent.orange,
+    backgroundColor: colors.accent.orange,
   },
   avatar2: {
     marginLeft: -12,
     zIndex: 2,
-    backgroundColor: THEME.colors.accent.blue,
+    backgroundColor: colors.accent.blue,
   },
   avatar3: {
     marginLeft: -12,
     zIndex: 1,
-    backgroundColor: THEME.colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   avatarText: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
   },
   socialText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   socialHighlight: {
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   ctaSection: {
     flex: 1,
@@ -325,7 +335,7 @@ const styles = StyleSheet.create({
   },
   termsText: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.gray,
+    color: colors.text.muted,
     textAlign: 'center',
     marginTop: THEME.spacing.xs,
   },

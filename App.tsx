@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LandingScreen } from './src/screens/LandingScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
@@ -26,15 +27,16 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { colors, isDark } = useTheme();
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <View style={styles.loadingIconContainer}>
-          <Sparkles size={32} color={THEME.colors.neutral.white} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background.primary }]}>
+        <View style={[styles.loadingIconContainer, { backgroundColor: colors.primary.main }]}>
+          <Sparkles size={32} color={colors.text.inverse} />
         </View>
-        <ActivityIndicator size="small" color={THEME.colors.primary.main} style={styles.loadingSpinner} />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <ActivityIndicator size="small" color={colors.primary.main} style={styles.loadingSpinner} />
+        <Text style={[styles.loadingText, { color: colors.text.secondary }]}>Loading...</Text>
       </View>
     );
   }
@@ -61,48 +63,53 @@ function RootNavigator() {
   );
 }
 
+function AppContent() {
+  const { colors, isDark } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
+      <NavigationContainer>
+        <RootNavigator />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+      </NavigationContainer>
+    </View>
+  );
+}
+
 export default function App() {
   return (
-    <View style={styles.container}>
-      <SafeAreaProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
         <AuthProvider>
-          <NavigationContainer>
-            <RootNavigator />
-            <StatusBar style="dark" />
-          </NavigationContainer>
+          <AppContent />
         </AuthProvider>
-      </SafeAreaProvider>
-    </View>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.neutral.white,
   },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: THEME.colors.neutral.white,
   },
   loadingIconContainer: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: THEME.colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    ...THEME.shadows.glow,
   },
   loadingSpinner: {
     marginBottom: 12,
   },
   loadingText: {
     fontSize: 14,
-    color: THEME.colors.neutral.darkGray,
     fontWeight: '500',
   },
 });

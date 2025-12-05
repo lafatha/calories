@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Meal, MealType, FoodAnalysis } from '../types';
@@ -38,12 +38,19 @@ export const useMeals = (date?: Date) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const targetDate = date || new Date();
-  const dateString = targetDate.toISOString().split('T')[0];
+  // Memoize dateString to prevent unnecessary re-renders
+  const dateString = useMemo(() => {
+    return date 
+      ? date.toISOString().split('T')[0] 
+      : new Date().toISOString().split('T')[0];
+  }, [date?.getTime()]);
 
   // Fetch meals for the day
   const fetchMeals = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -218,7 +225,10 @@ export const useWeeklyStats = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchWeeklyStats = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
 

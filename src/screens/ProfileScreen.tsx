@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  Modal,
+  FlatList,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -27,22 +30,28 @@ import {
   Flame,
   Star,
   Settings,
+  Sun,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTime } from '../hooks/useTime';
-import { Button } from '../components/Button';
+import { useWeeklyStats } from '../hooks/useMeals';
 import { THEME } from '../constants/theme';
 import { TIMEZONES } from '../constants/timezones';
+import { TimezoneOption } from '../types';
 
 export const ProfileScreen = () => {
   const { user, profile, signOut, updateProfile } = useAuth();
+  const { isDark, themeMode, setThemeMode, colors } = useTheme();
   const { formattedTime, formattedDate } = useTime(profile?.timezone);
+  const { daysOnTrack } = useWeeklyStats();
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [calorieGoal, setCalorieGoal] = useState(
     profile?.daily_calorie_goal?.toString() || '2000'
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [showTimezonePicker, setShowTimezonePicker] = useState(false);
 
   const selectedTimezone = TIMEZONES.find((tz) => tz.value === profile?.timezone);
 
@@ -60,7 +69,21 @@ export const ProfileScreen = () => {
     if (error) {
       Alert.alert('Error', 'Failed to update goal');
     } else {
-      setIsEditing(false);
+      setIsEditingGoal(false);
+      Alert.alert('Success', 'Daily calorie goal updated!');
+    }
+  };
+
+  const handleUpdateTimezone = async (timezone: string) => {
+    setIsLoading(true);
+    const { error } = await updateProfile({ timezone });
+    setIsLoading(false);
+    setShowTimezonePicker(false);
+
+    if (error) {
+      Alert.alert('Error', 'Failed to update timezone');
+    } else {
+      Alert.alert('Success', 'Timezone updated!');
     }
   };
 
@@ -75,6 +98,14 @@ export const ProfileScreen = () => {
     );
   };
 
+  const toggleDarkMode = () => {
+    if (themeMode === 'dark') {
+      setThemeMode('light');
+    } else {
+      setThemeMode('dark');
+    }
+  };
+
   const getInitials = () => {
     const name = profile?.full_name || profile?.username || user?.email || '';
     return name
@@ -84,6 +115,32 @@ export const ProfileScreen = () => {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const renderTimezoneItem = ({ item }: { item: TimezoneOption }) => (
+    <TouchableOpacity
+      style={[
+        styles.timezoneItem,
+        { backgroundColor: colors.background.card },
+        item.value === profile?.timezone && { backgroundColor: colors.primary.main + '15' },
+      ]}
+      onPress={() => handleUpdateTimezone(item.value)}
+    >
+      <Text style={[
+        styles.timezoneItemText,
+        { color: colors.text.primary },
+        item.value === profile?.timezone && { color: colors.primary.main, fontWeight: '600' },
+      ]}>
+        {item.label} ({item.offset})
+      </Text>
+      {item.value === profile?.timezone && (
+        <View style={[styles.checkBadge, { backgroundColor: colors.primary.main }]}>
+          <Check size={16} color={colors.text.inverse} />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  const styles = createStyles(colors, isDark);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -95,7 +152,7 @@ export const ProfileScreen = () => {
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
           <TouchableOpacity style={styles.settingsButton}>
-            <Settings size={22} color={THEME.colors.neutral.charcoal} />
+            <Settings size={22} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
 
@@ -109,7 +166,7 @@ export const ProfileScreen = () => {
               </View>
             </View>
             <View style={styles.levelBadge}>
-              <Star size={14} color={THEME.colors.accent.orange} fill={THEME.colors.accent.orange} />
+              <Star size={14} color={colors.accent.orange} fill={colors.accent.orange} />
             </View>
           </View>
 
@@ -122,15 +179,15 @@ export const ProfileScreen = () => {
           <View style={styles.profileStats}>
             <View style={styles.profileStat}>
               <View style={styles.profileStatIcon}>
-                <Flame size={16} color={THEME.colors.accent.orange} />
+                <Flame size={16} color={colors.accent.orange} />
               </View>
-              <Text style={styles.profileStatValue}>7</Text>
+              <Text style={styles.profileStatValue}>{daysOnTrack}</Text>
               <Text style={styles.profileStatLabel}>Day Streak</Text>
             </View>
             <View style={styles.profileStatDivider} />
             <View style={styles.profileStat}>
               <View style={styles.profileStatIcon}>
-                <Target size={16} color={THEME.colors.accent.green} />
+                <Target size={16} color={colors.accent.green} />
               </View>
               <Text style={styles.profileStatValue}>{profile?.daily_calorie_goal || 2000}</Text>
               <Text style={styles.profileStatLabel}>Daily Goal</Text>
@@ -139,7 +196,7 @@ export const ProfileScreen = () => {
 
           {/* Time Display */}
           <View style={styles.timeDisplay}>
-            <Clock size={20} color={THEME.colors.primary.main} />
+            <Clock size={20} color={colors.primary.main} />
             <View>
               <Text style={styles.timeValue}>{formattedTime}</Text>
               <Text style={styles.dateValue}>{formattedDate}</Text>
@@ -150,18 +207,18 @@ export const ProfileScreen = () => {
         {/* Goals Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Target size={18} color={THEME.colors.primary.main} />
+            <Target size={18} color={colors.primary.main} />
             <Text style={styles.sectionTitle}>Your Goals</Text>
           </View>
 
           <View style={styles.goalCard}>
             <View style={styles.goalHeader}>
               <View style={styles.goalIcon}>
-                <Target size={22} color={THEME.colors.accent.green} />
+                <Target size={22} color={colors.accent.green} />
               </View>
               <View style={styles.goalInfo}>
                 <Text style={styles.goalLabel}>Daily Calorie Target</Text>
-                {isEditing ? (
+                {isEditingGoal ? (
                   <View style={styles.editRow}>
                     <TextInput
                       style={styles.editInput}
@@ -169,8 +226,9 @@ export const ProfileScreen = () => {
                       onChangeText={setCalorieGoal}
                       keyboardType="numeric"
                       maxLength={5}
+                      autoFocus
                     />
-                    <Text style={styles.editUnit}>kcal</Text>
+                    <Text style={styles.editUnit}>kcal/day</Text>
                   </View>
                 ) : (
                   <Text style={styles.goalValue}>
@@ -180,28 +238,28 @@ export const ProfileScreen = () => {
               </View>
             </View>
 
-            {isEditing ? (
+            {isEditingGoal ? (
               <View style={styles.editActions}>
                 <TouchableOpacity
                   onPress={() => {
-                    setIsEditing(false);
+                    setIsEditingGoal(false);
                     setCalorieGoal(profile?.daily_calorie_goal?.toString() || '2000');
                   }}
                   style={styles.actionButton}
                 >
-                  <X size={20} color={THEME.colors.neutral.darkGray} />
+                  <X size={20} color={colors.text.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleSaveGoal}
                   style={[styles.actionButton, styles.actionButtonPrimary]}
                   disabled={isLoading}
                 >
-                  <Check size={20} color={THEME.colors.neutral.white} />
+                  <Check size={20} color={colors.text.inverse} />
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.editButton}>
-                <Edit3 size={18} color={THEME.colors.primary.main} />
+              <TouchableOpacity onPress={() => setIsEditingGoal(true)} style={styles.editButton}>
+                <Edit3 size={18} color={colors.primary.main} />
                 <Text style={styles.editButtonText}>Edit</Text>
               </TouchableOpacity>
             )}
@@ -211,42 +269,58 @@ export const ProfileScreen = () => {
         {/* Settings Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Settings size={18} color={THEME.colors.primary.main} />
+            <Settings size={18} color={colors.primary.main} />
             <Text style={styles.sectionTitle}>Settings</Text>
           </View>
 
           <View style={styles.settingsCard}>
-            <TouchableOpacity style={styles.settingRow}>
-              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.accent.purple + '15' }]}>
-                <Globe size={20} color={THEME.colors.accent.purple} />
+            {/* Timezone Setting */}
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => setShowTimezonePicker(true)}
+            >
+              <View style={[styles.settingIcon, { backgroundColor: colors.accent.purple + '15' }]}>
+                <Globe size={20} color={colors.accent.purple} />
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Timezone</Text>
-                <Text style={styles.settingValue}>{selectedTimezone?.label}</Text>
+                <Text style={styles.settingValue} numberOfLines={1}>
+                  {selectedTimezone?.label || 'Select timezone'}
+                </Text>
               </View>
-              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+              <ChevronRight size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
 
+            {/* Dark Mode Toggle */}
+            <View style={styles.settingRow}>
+              <View style={[styles.settingIcon, { backgroundColor: colors.accent.blue + '15' }]}>
+                {isDark ? (
+                  <Moon size={20} color={colors.accent.blue} />
+                ) : (
+                  <Sun size={20} color={colors.accent.orange} />
+                )}
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>Dark Mode</Text>
+                <Text style={styles.settingValue}>{isDark ? 'On' : 'Off'}</Text>
+              </View>
+              <Switch
+                value={isDark}
+                onValueChange={toggleDarkMode}
+                trackColor={{ false: colors.border.medium, true: colors.primary.main }}
+                thumbColor={colors.background.card}
+              />
+            </View>
+
             <TouchableOpacity style={styles.settingRow}>
-              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.accent.orange + '15' }]}>
-                <Bell size={20} color={THEME.colors.accent.orange} />
+              <View style={[styles.settingIcon, { backgroundColor: colors.accent.orange + '15' }]}>
+                <Bell size={20} color={colors.accent.orange} />
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Notifications</Text>
                 <Text style={styles.settingValue}>Enabled</Text>
               </View>
-              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.settingRow}>
-              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.accent.blue + '15' }]}>
-                <Moon size={20} color={THEME.colors.accent.blue} />
-              </View>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>Dark Mode</Text>
-                <Text style={styles.settingValue}>Off</Text>
-              </View>
-              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+              <ChevronRight size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -254,14 +328,14 @@ export const ProfileScreen = () => {
         {/* Account Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <User size={18} color={THEME.colors.primary.main} />
+            <User size={18} color={colors.primary.main} />
             <Text style={styles.sectionTitle}>Account</Text>
           </View>
 
           <View style={styles.settingsCard}>
             <View style={styles.settingRow}>
-              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
-                <Mail size={20} color={THEME.colors.neutral.charcoal} />
+              <View style={[styles.settingIcon, { backgroundColor: colors.neutral.lightGray }]}>
+                <Mail size={20} color={colors.text.primary} />
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Email</Text>
@@ -270,48 +344,80 @@ export const ProfileScreen = () => {
             </View>
 
             <TouchableOpacity style={styles.settingRow}>
-              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
-                <Shield size={20} color={THEME.colors.neutral.charcoal} />
+              <View style={[styles.settingIcon, { backgroundColor: colors.neutral.lightGray }]}>
+                <Shield size={20} color={colors.text.primary} />
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Privacy & Security</Text>
               </View>
-              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+              <ChevronRight size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.settingRow}>
-              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
-                <HelpCircle size={20} color={THEME.colors.neutral.charcoal} />
+              <View style={[styles.settingIcon, { backgroundColor: colors.neutral.lightGray }]}>
+                <HelpCircle size={20} color={colors.text.primary} />
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Help & Support</Text>
               </View>
-              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+              <ChevronRight size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Sign Out Button */}
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <LogOut size={20} color={THEME.colors.secondary.main} />
+          <LogOut size={20} color={colors.secondary.main} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
         {/* App Version */}
         <Text style={styles.versionText}>Calories AI v1.0.0</Text>
       </ScrollView>
+
+      {/* Timezone Picker Modal */}
+      <Modal
+        visible={showTimezonePicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowTimezonePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.background.primary }]}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Globe size={24} color={colors.primary.main} />
+              <Text style={styles.modalTitle}>Select Timezone</Text>
+              <TouchableOpacity
+                onPress={() => setShowTimezonePicker(false)}
+                style={styles.modalDoneButton}
+              >
+                <Text style={styles.modalDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={TIMEZONES}
+              renderItem={renderTimezoneItem}
+              keyExtractor={(item) => item.value}
+              showsVerticalScrollIndicator={false}
+              ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: colors.border.light }]} />}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
+    flexGrow: 1,
     padding: THEME.spacing.screenPadding,
-    paddingBottom: 140,
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
@@ -322,24 +428,33 @@ const styles = StyleSheet.create({
   title: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   settingsButton: {
     width: 44,
     height: 44,
     borderRadius: THEME.layout.borderRadius.lg,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.xs,
   },
   profileCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius['2xl'],
     padding: THEME.spacing.xl,
     alignItems: 'center',
     marginBottom: THEME.spacing.xl,
-    ...THEME.shadows.md,
+    // Shadow for light mode, border for dark mode
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 1,
+      shadowRadius: 16,
+      elevation: 5,
+    }),
   },
   avatarSection: {
     position: 'relative',
@@ -351,7 +466,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     padding: 4,
     borderWidth: 3,
-    borderColor: THEME.colors.primary.main,
+    borderColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -359,14 +474,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 46,
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
   },
   levelBadge: {
     position: 'absolute',
@@ -375,20 +490,21 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.sm,
+    borderWidth: 2,
+    borderColor: colors.background.secondary,
   },
   userName: {
     fontSize: THEME.typography.fontSizes.xl,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   userHandle: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     marginBottom: THEME.spacing.lg,
   },
   profileStats: {
@@ -406,23 +522,23 @@ const styles = StyleSheet.create({
   profileStatValue: {
     fontSize: THEME.typography.fontSizes.xl,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   profileStatLabel: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     marginTop: 2,
   },
   profileStatDivider: {
     width: 1,
     height: 40,
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.light,
   },
   timeDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: THEME.spacing.md,
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     paddingVertical: THEME.spacing.md,
     paddingHorizontal: THEME.spacing.lg,
     borderRadius: THEME.layout.borderRadius.xl,
@@ -430,11 +546,11 @@ const styles = StyleSheet.create({
   timeValue: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   dateValue: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   section: {
     marginBottom: THEME.spacing.xl,
@@ -448,16 +564,26 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   goalCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    ...THEME.shadows.sm,
+    // Shadow for light mode, border for dark mode
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 1,
+      shadowRadius: 10,
+      elevation: 4,
+    }),
   },
   goalHeader: {
     flexDirection: 'row',
@@ -469,7 +595,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: THEME.layout.borderRadius.lg,
-    backgroundColor: THEME.colors.accent.green + '15',
+    backgroundColor: colors.accent.green + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -479,12 +605,12 @@ const styles = StyleSheet.create({
   goalLabel: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   goalValue: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.accent.green,
+    color: colors.accent.green,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   editRow: {
@@ -493,21 +619,21 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   editInput: {
-    backgroundColor: THEME.colors.neutral.lightGray,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    backgroundColor: colors.background.tertiary,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: THEME.layout.borderRadius.md,
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     fontWeight: THEME.typography.fontWeights.semibold,
-    minWidth: 60,
+    minWidth: 70,
     textAlign: 'center',
     borderWidth: 2,
-    borderColor: THEME.colors.primary.main,
+    borderColor: colors.primary.main,
   },
   editUnit: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   editButton: {
     flexDirection: 'row',
@@ -515,12 +641,12 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    backgroundColor: THEME.colors.primary.light + '15',
+    backgroundColor: colors.primary.main + '15',
     borderRadius: THEME.layout.borderRadius.full,
   },
   editButtonText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
   editActions: {
@@ -531,18 +657,28 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionButtonPrimary: {
-    backgroundColor: THEME.colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   settingsCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     overflow: 'hidden',
-    ...THEME.shadows.sm,
+    // Shadow for light mode, border for dark mode
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 1,
+      shadowRadius: 10,
+      elevation: 4,
+    }),
   },
   settingRow: {
     flexDirection: 'row',
@@ -550,7 +686,7 @@ const styles = StyleSheet.create({
     padding: THEME.spacing.lg,
     gap: THEME.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.neutral.lightGray,
+    borderBottomColor: colors.border.light,
   },
   settingIcon: {
     width: 44,
@@ -565,12 +701,12 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.medium,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   settingValue: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   signOutButton: {
     flexDirection: 'row',
@@ -578,20 +714,86 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: THEME.spacing.sm,
     paddingVertical: THEME.spacing.lg,
-    backgroundColor: THEME.colors.secondary.main + '10',
+    backgroundColor: colors.secondary.main + '10',
     borderRadius: THEME.layout.borderRadius.xl,
     marginBottom: THEME.spacing.lg,
     borderWidth: 1,
-    borderColor: THEME.colors.secondary.main + '25',
+    borderColor: colors.secondary.main + '25',
   },
   signOutText: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.secondary.main,
+    color: colors.secondary.main,
   },
   versionText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.gray,
+    color: colors.text.tertiary,
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: THEME.layout.borderRadius['3xl'],
+    borderTopRightRadius: THEME.layout.borderRadius['3xl'],
+    maxHeight: '75%',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: colors.border.medium,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: THEME.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+    gap: THEME.spacing.sm,
+  },
+  modalTitle: {
+    flex: 1,
+    fontSize: THEME.typography.fontSizes.lg,
+    fontWeight: THEME.typography.fontWeights.bold,
+    color: colors.text.primary,
+  },
+  modalDoneButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: colors.primary.main + '20',
+    borderRadius: THEME.layout.borderRadius.full,
+  },
+  modalDoneText: {
+    fontSize: THEME.typography.fontSizes.base,
+    color: colors.primary.main,
+    fontWeight: THEME.typography.fontWeights.semibold,
+  },
+  separator: {
+    height: 1,
+  },
+  timezoneItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: THEME.spacing.lg,
+    paddingHorizontal: THEME.spacing.xl,
+  },
+  timezoneItemText: {
+    fontSize: THEME.typography.fontSizes.base,
+    flex: 1,
+  },
+  checkBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

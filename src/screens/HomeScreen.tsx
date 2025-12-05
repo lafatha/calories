@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +16,6 @@ import {
   Flame,
   Plus,
   ChevronRight,
-  ChevronLeft,
   Sparkles,
   Coffee,
   Sun,
@@ -29,8 +29,11 @@ import {
   Sunset,
   CloudMoon,
   Calendar,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTime } from '../hooks/useTime';
 import { useMeals, useWeeklyStats } from '../hooks/useMeals';
 import { THEME } from '../constants/theme';
@@ -47,7 +50,6 @@ const MEAL_CONFIG: Record<MealType, { icon: any; label: string }> = {
   snack: { icon: Cookie, label: 'Snack' },
 };
 
-// Generate last 14 days for calendar
 const generateDates = () => {
   const dates = [];
   const today = new Date();
@@ -65,14 +67,14 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 export const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { profile } = useAuth();
+  const { colors, isDark } = useTheme();
   const { greeting, currentMealType } = useTime(profile?.timezone);
   const { daysOnTrack } = useWeeklyStats();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const calendarRef = useRef<FlatList>(null);
 
-  // Fetch meals for selected date
-  const { meals, stats, isLoading } = useMeals(selectedDate);
+  const { meals, stats, isLoading, error, refresh } = useMeals(selectedDate);
 
   const dates = generateDates();
   const dailyGoal = profile?.daily_calorie_goal || 2000;
@@ -84,14 +86,10 @@ export const HomeScreen = () => {
 
   const getGreetingIcon = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return <Sunrise size={28} color={THEME.colors.accent.orange} />;
-    if (hour < 17) return <Sun size={28} color={THEME.colors.accent.orange} />;
-    if (hour < 21) return <Sunset size={28} color={THEME.colors.accent.purple} />;
-    return <CloudMoon size={28} color={THEME.colors.primary.main} />;
-  };
-
-  const getMealColor = (mealType: MealType): string => {
-    return THEME.colors.meal[mealType];
+    if (hour < 12) return <Sunrise size={28} color={colors.accent.orange} />;
+    if (hour < 17) return <Sun size={28} color={colors.accent.orange} />;
+    if (hour < 21) return <Sunset size={28} color={colors.accent.purple} />;
+    return <CloudMoon size={28} color={colors.primary.main} />;
   };
 
   const getMotivationalMessage = () => {
@@ -114,7 +112,7 @@ export const HomeScreen = () => {
     return `${MONTHS[date.getMonth()]} ${date.getDate()}`;
   };
 
-  const renderDateItem = ({ item: date, index }: { item: Date; index: number }) => {
+  const renderDateItem = ({ item: date }: { item: Date }) => {
     const isSelected = date.toDateString() === selectedDate.toDateString();
     const isTodayItem = date.toDateString() === new Date().toDateString();
 
@@ -122,33 +120,38 @@ export const HomeScreen = () => {
       <TouchableOpacity
         style={[
           styles.dateItem,
-          isSelected && styles.dateItemSelected,
-          isTodayItem && !isSelected && styles.dateItemToday,
+          { backgroundColor: colors.background.card },
+          isSelected && { backgroundColor: colors.primary.main },
+          isTodayItem && !isSelected && { borderWidth: 2, borderColor: colors.primary.main },
         ]}
         onPress={() => setSelectedDate(date)}
       >
         <Text style={[
           styles.dateWeekday,
-          isSelected && styles.dateTextSelected,
+          { color: colors.text.secondary },
+          isSelected && { color: colors.text.inverse },
         ]}>
           {WEEKDAYS[date.getDay()]}
         </Text>
         <Text style={[
           styles.dateNumber,
-          isSelected && styles.dateTextSelected,
-          isTodayItem && !isSelected && styles.dateNumberToday,
+          { color: colors.text.primary },
+          isSelected && { color: colors.text.inverse },
+          isTodayItem && !isSelected && { color: colors.primary.main },
         ]}>
           {date.getDate()}
         </Text>
         {isTodayItem && (
           <View style={[
             styles.todayDot,
-            isSelected && styles.todayDotSelected,
+            { backgroundColor: isSelected ? colors.text.inverse : colors.primary.main },
           ]} />
         )}
       </TouchableOpacity>
     );
   };
+
+  const styles = createStyles(colors, isDark);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -168,10 +171,9 @@ export const HomeScreen = () => {
             </View>
           </View>
 
-          {/* Streak Badge */}
           {daysOnTrack > 0 && (
             <View style={styles.streakContainer}>
-              <Flame size={18} color={THEME.colors.accent.orange} fill={THEME.colors.accent.orange} />
+              <Flame size={18} color={colors.accent.orange} fill={colors.accent.orange} />
               <Text style={styles.streakCount}>{daysOnTrack}</Text>
             </View>
           )}
@@ -179,19 +181,17 @@ export const HomeScreen = () => {
 
         {/* Main Progress Card */}
         <View style={styles.progressCard}>
-          {/* Progress Circle */}
           <View style={styles.progressVisual}>
             <View style={styles.progressCircleOuter}>
               <View style={[
                 styles.progressCircle,
-                isOverGoal && styles.progressCircleOver
+                isOverGoal && { borderColor: colors.secondary.main }
               ]}>
                 <Text style={styles.progressCalories}>{stats.totalCalories}</Text>
                 <Text style={styles.progressUnit}>kcal</Text>
               </View>
             </View>
 
-            {/* Quick Stats below circle */}
             <View style={styles.quickStatsRow}>
               <View style={styles.quickStat}>
                 <Text style={styles.quickStatValue}>{dailyGoal}</Text>
@@ -201,7 +201,7 @@ export const HomeScreen = () => {
               <View style={styles.quickStat}>
                 <Text style={[
                   styles.quickStatValue,
-                  isOverGoal && styles.quickStatValueOver
+                  isOverGoal && { color: colors.secondary.main }
                 ]}>
                   {isOverGoal ? '+' : ''}{Math.abs(remainingCalories)}
                 </Text>
@@ -210,14 +210,13 @@ export const HomeScreen = () => {
             </View>
           </View>
 
-          {/* Motivational Message */}
           <View style={styles.motivationContainer}>
             <Text style={styles.motivationText}>{getMotivationalMessage()}</Text>
             <View style={styles.progressBar}>
               <View style={[
                 styles.progressBarFill,
                 { width: `${Math.min(progressPercentage, 100)}%` },
-                isOverGoal && styles.progressBarFillOver
+                isOverGoal && { backgroundColor: colors.secondary.main }
               ]} />
             </View>
             <Text style={styles.progressPercent}>{Math.round(progressPercentage)}% of daily goal</Text>
@@ -227,7 +226,7 @@ export const HomeScreen = () => {
         {/* Calendar Strip */}
         <View style={styles.calendarSection}>
           <View style={styles.calendarHeader}>
-            <Calendar size={18} color={THEME.colors.primary.main} />
+            <Calendar size={18} color={colors.primary.main} />
             <Text style={styles.calendarTitle}>{formatDateLabel(selectedDate)}</Text>
             {!isToday && (
               <TouchableOpacity
@@ -259,7 +258,7 @@ export const HomeScreen = () => {
           />
         </View>
 
-        {/* Quick Add Floating Button - Only show for today */}
+        {/* Quick Add Button */}
         {isToday && (
           <TouchableOpacity
             style={styles.quickAddButton}
@@ -267,13 +266,13 @@ export const HomeScreen = () => {
             activeOpacity={0.9}
           >
             <View style={styles.quickAddIcon}>
-              <Sparkles size={24} color={THEME.colors.neutral.white} />
+              <Sparkles size={24} color={colors.text.inverse} />
             </View>
             <View style={styles.quickAddContent}>
               <Text style={styles.quickAddTitle}>Log Your Meal</Text>
               <Text style={styles.quickAddSubtitle}>Snap a photo for instant AI analysis</Text>
             </View>
-            <ChevronRight size={24} color={THEME.colors.neutral.white} />
+            <ChevronRight size={24} color={colors.text.inverse} />
           </TouchableOpacity>
         )}
 
@@ -288,6 +287,28 @@ export const HomeScreen = () => {
             </Text>
           </View>
 
+          {/* Loading State */}
+          {isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary.main} />
+              <Text style={styles.loadingText}>Loading meals...</Text>
+            </View>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={32} color={colors.semantic.error} />
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={refresh}>
+                <RefreshCw size={16} color={colors.text.inverse} />
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Meals Grid - only show when not loading and no error */}
+          {!isLoading && !error && (
           <View style={styles.mealsGrid}>
             {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((mealType) => {
               const config = MEAL_CONFIG[mealType];
@@ -314,22 +335,19 @@ export const HomeScreen = () => {
                   activeOpacity={isToday ? 0.8 : 1}
                   disabled={!isToday}
                 >
-                  {/* Current meal indicator */}
                   {isCurrentMeal && !hasLogged && (
                     <View style={styles.currentMealBadge}>
                       <Text style={styles.currentMealText}>NOW</Text>
                     </View>
                   )}
 
-                  {/* Meal Icon */}
                   <View style={[
                     styles.mealIconContainer,
-                    { backgroundColor: getMealColor(mealType) + '15' }
+                    { backgroundColor: colors.meal[mealType] + '15' }
                   ]}>
-                    <Icon size={24} color={getMealColor(mealType)} />
+                    <Icon size={24} color={colors.meal[mealType]} />
                   </View>
 
-                  {/* Meal Info */}
                   <Text style={styles.mealLabel}>{config.label}</Text>
 
                   {hasLogged ? (
@@ -339,12 +357,9 @@ export const HomeScreen = () => {
                     </View>
                   ) : isToday ? (
                     <TouchableOpacity
-                      style={[
-                        styles.addMealButton,
-                        { backgroundColor: getMealColor(mealType) }
-                      ]}
+                      style={[styles.addMealButton, { backgroundColor: colors.meal[mealType] }]}
                     >
-                      <Plus size={16} color={THEME.colors.neutral.white} />
+                      <Plus size={16} color={colors.text.inverse} />
                     </TouchableOpacity>
                   ) : (
                     <Text style={styles.noMealText}>No meal</Text>
@@ -353,10 +368,11 @@ export const HomeScreen = () => {
               );
             })}
           </View>
+          )}
         </View>
 
-        {/* Meal Items List - Show when there are meals */}
-        {stats.totalCalories > 0 && (
+        {/* Meal Items List */}
+        {!isLoading && !error && stats.totalCalories > 0 && (
           <View style={styles.mealItemsSection}>
             <Text style={styles.mealItemsTitle}>Logged Items</Text>
             <View style={styles.mealItemsCard}>
@@ -365,7 +381,7 @@ export const HomeScreen = () => {
                   <View key={meal.id || index} style={styles.mealItem}>
                     <View style={[
                       styles.mealItemDot,
-                      { backgroundColor: getMealColor(type as MealType) }
+                      { backgroundColor: colors.meal[type as MealType] }
                     ]} />
                     <View style={styles.mealItemInfo}>
                       <Text style={styles.mealItemName} numberOfLines={1}>
@@ -383,12 +399,12 @@ export const HomeScreen = () => {
           </View>
         )}
 
-        {/* Tips Card - Only show for today */}
+        {/* Tips Card */}
         {isToday && (
           <View style={styles.tipsCard}>
             <View style={styles.tipsHeader}>
               <View style={styles.tipsIconContainer}>
-                <Lightbulb size={20} color={THEME.colors.accent.blue} />
+                <Lightbulb size={20} color={colors.accent.blue} />
               </View>
               <Text style={styles.tipsTitle}>Daily Tip</Text>
             </View>
@@ -400,14 +416,14 @@ export const HomeScreen = () => {
 
         {/* Food Icons Decoration */}
         <View style={styles.foodDecoration}>
-          <View style={[styles.foodIcon, { backgroundColor: THEME.colors.accent.green + '15' }]}>
-            <Apple size={20} color={THEME.colors.accent.green} />
+          <View style={[styles.foodIcon, { backgroundColor: colors.accent.green + '15' }]}>
+            <Apple size={20} color={colors.accent.green} />
           </View>
-          <View style={[styles.foodIcon, { backgroundColor: THEME.colors.accent.orange + '15' }]}>
-            <Salad size={20} color={THEME.colors.accent.orange} />
+          <View style={[styles.foodIcon, { backgroundColor: colors.accent.orange + '15' }]}>
+            <Salad size={20} color={colors.accent.orange} />
           </View>
-          <View style={[styles.foodIcon, { backgroundColor: THEME.colors.secondary.main + '15' }]}>
-            <UtensilsCrossed size={20} color={THEME.colors.secondary.main} />
+          <View style={[styles.foodIcon, { backgroundColor: colors.secondary.main + '15' }]}>
+            <UtensilsCrossed size={20} color={colors.secondary.main} />
           </View>
         </View>
       </ScrollView>
@@ -415,14 +431,15 @@ export const HomeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
+    flexGrow: 1,
     padding: THEME.spacing.screenPadding,
-    paddingBottom: 140,
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
@@ -439,24 +456,34 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: THEME.layout.borderRadius.xl,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.sm,
+    // Shadow for light mode, border for dark mode
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 1,
+      shadowRadius: 8,
+      elevation: 3,
+    }),
   },
   greeting: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   username: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   streakContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.accent.orange + '15',
+    backgroundColor: colors.accent.orange + '15',
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: THEME.layout.borderRadius.full,
@@ -465,7 +492,107 @@ const styles = StyleSheet.create({
   streakCount: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.accent.orange,
+    color: colors.accent.orange,
+  },
+  progressCard: {
+    backgroundColor: colors.background.card,
+    borderRadius: THEME.layout.borderRadius['2xl'],
+    padding: THEME.spacing.xl,
+    marginBottom: THEME.spacing.lg,
+    // Shadow for light mode, border for dark mode
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 1,
+      shadowRadius: 16,
+      elevation: 5,
+    }),
+  },
+  progressVisual: {
+    alignItems: 'center',
+    marginBottom: THEME.spacing.xl,
+  },
+  progressCircleOuter: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: colors.primary.main + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: THEME.spacing.lg,
+  },
+  progressCircle: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: colors.background.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 6,
+    borderColor: colors.primary.main,
+  },
+  progressCalories: {
+    fontSize: THEME.typography.fontSizes['2xl'],
+    fontWeight: THEME.typography.fontWeights.bold,
+    color: colors.text.primary,
+  },
+  progressUnit: {
+    fontSize: THEME.typography.fontSizes.sm,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  quickStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.xl,
+  },
+  quickStat: {
+    alignItems: 'center',
+  },
+  quickStatValue: {
+    fontSize: THEME.typography.fontSizes.lg,
+    fontWeight: THEME.typography.fontWeights.bold,
+    color: colors.text.primary,
+  },
+  quickStatLabel: {
+    fontSize: THEME.typography.fontSizes.sm,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  quickStatDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: colors.border.light,
+  },
+  motivationContainer: {
+    alignItems: 'center',
+  },
+  motivationText: {
+    fontSize: THEME.typography.fontSizes.md,
+    fontWeight: THEME.typography.fontWeights.semibold,
+    color: colors.text.primary,
+    marginBottom: THEME.spacing.md,
+    textAlign: 'center',
+  },
+  progressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: 4,
+    marginBottom: THEME.spacing.sm,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: colors.primary.main,
+    borderRadius: 4,
+  },
+  progressPercent: {
+    fontSize: THEME.typography.fontSizes.sm,
+    color: colors.text.secondary,
   },
   calendarSection: {
     marginBottom: THEME.spacing.lg,
@@ -480,17 +607,17 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   todayButton: {
     paddingVertical: 6,
     paddingHorizontal: 14,
-    backgroundColor: THEME.colors.primary.light + '20',
+    backgroundColor: colors.primary.main + '20',
     borderRadius: THEME.layout.borderRadius.full,
   },
   todayButtonText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
   calendarList: {
@@ -501,153 +628,48 @@ const styles = StyleSheet.create({
     height: 68,
     marginHorizontal: 4,
     borderRadius: THEME.layout.borderRadius.lg,
-    backgroundColor: THEME.colors.neutral.white,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.xs,
-  },
-  dateItemSelected: {
-    backgroundColor: THEME.colors.primary.main,
-  },
-  dateItemToday: {
-    borderWidth: 2,
-    borderColor: THEME.colors.primary.main,
+    // Shadow for calendar items
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 1,
+      shadowRadius: 4,
+      elevation: 2,
+    }),
   },
   dateWeekday: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
     marginBottom: 4,
   },
   dateNumber: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
-  },
-  dateTextSelected: {
-    color: THEME.colors.neutral.white,
-  },
-  dateNumberToday: {
-    color: THEME.colors.primary.main,
   },
   todayDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: THEME.colors.primary.main,
     marginTop: 4,
-  },
-  todayDotSelected: {
-    backgroundColor: THEME.colors.neutral.white,
-  },
-  progressCard: {
-    backgroundColor: THEME.colors.neutral.white,
-    borderRadius: THEME.layout.borderRadius['2xl'],
-    padding: THEME.spacing.xl,
-    marginBottom: THEME.spacing.lg,
-    ...THEME.shadows.md,
-  },
-  progressVisual: {
-    alignItems: 'center',
-    marginBottom: THEME.spacing.xl,
-  },
-  progressCircleOuter: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: THEME.colors.primary.light + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: THEME.spacing.lg,
-  },
-  progressCircle: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: THEME.colors.neutral.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 6,
-    borderColor: THEME.colors.primary.main,
-    ...THEME.shadows.md,
-  },
-  progressCircleOver: {
-    borderColor: THEME.colors.secondary.main,
-  },
-  progressCalories: {
-    fontSize: THEME.typography.fontSizes['2xl'],
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
-  },
-  progressUnit: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
-    marginTop: 2,
-  },
-  quickStatsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: THEME.spacing.xl,
-  },
-  quickStat: {
-    alignItems: 'center',
-  },
-  quickStatValue: {
-    fontSize: THEME.typography.fontSizes.lg,
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
-  },
-  quickStatValueOver: {
-    color: THEME.colors.secondary.main,
-  },
-  quickStatLabel: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
-    marginTop: 2,
-  },
-  quickStatDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: THEME.colors.neutral.mediumGray,
-  },
-  motivationContainer: {
-    alignItems: 'center',
-  },
-  motivationText: {
-    fontSize: THEME.typography.fontSizes.md,
-    fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.black,
-    marginBottom: THEME.spacing.md,
-    textAlign: 'center',
-  },
-  progressBar: {
-    width: '100%',
-    height: 8,
-    backgroundColor: THEME.colors.neutral.lightGray,
-    borderRadius: 4,
-    marginBottom: THEME.spacing.sm,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: THEME.colors.primary.main,
-    borderRadius: 4,
-  },
-  progressBarFillOver: {
-    backgroundColor: THEME.colors.secondary.main,
-  },
-  progressPercent: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
   },
   quickAddButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
     marginBottom: THEME.spacing.xl,
     gap: THEME.spacing.md,
-    ...THEME.shadows.glow,
+    // Glow shadow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
   quickAddIcon: {
     width: 48,
@@ -663,7 +685,7 @@ const styles = StyleSheet.create({
   quickAddTitle: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
     marginBottom: 2,
   },
   quickAddSubtitle: {
@@ -679,12 +701,55 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: THEME.spacing['3xl'],
+    backgroundColor: colors.background.card,
+    borderRadius: THEME.layout.borderRadius.xl,
+  },
+  loadingText: {
+    marginTop: THEME.spacing.md,
+    fontSize: THEME.typography.fontSizes.base,
+    color: colors.text.secondary,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: THEME.spacing['2xl'],
+    paddingHorizontal: THEME.spacing.xl,
+    backgroundColor: colors.semantic.error + '10',
+    borderRadius: THEME.layout.borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.semantic.error + '30',
+  },
+  errorText: {
+    marginTop: THEME.spacing.sm,
+    fontSize: THEME.typography.fontSizes.base,
+    color: colors.semantic.error,
+    textAlign: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.xs,
+    marginTop: THEME.spacing.md,
+    paddingVertical: THEME.spacing.sm,
+    paddingHorizontal: THEME.spacing.lg,
+    backgroundColor: colors.semantic.error,
+    borderRadius: THEME.layout.borderRadius.full,
+  },
+  retryText: {
+    fontSize: THEME.typography.fontSizes.sm,
+    fontWeight: THEME.typography.fontWeights.semibold,
+    color: colors.text.inverse,
   },
   mealsGrid: {
     flexDirection: 'row',
@@ -693,28 +758,38 @@ const styles = StyleSheet.create({
   },
   mealCard: {
     width: (width - 40 - THEME.spacing.md) / 2,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
     alignItems: 'center',
-    ...THEME.shadows.sm,
     position: 'relative',
+    // Shadow for meal cards
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 1,
+      shadowRadius: 10,
+      elevation: 4,
+    }),
   },
   mealCardLogged: {
     borderWidth: 2,
-    borderColor: THEME.colors.accent.green + '40',
-    backgroundColor: THEME.colors.accent.green + '05',
+    borderColor: colors.accent.green + '40',
+    backgroundColor: isDark ? colors.accent.green + '10' : colors.accent.green + '05',
   },
   mealCardCurrent: {
     borderWidth: 2,
-    borderColor: THEME.colors.primary.main,
+    borderColor: colors.primary.main,
     borderStyle: 'dashed',
   },
   currentMealBadge: {
     position: 'absolute',
     top: -8,
     right: THEME.spacing.md,
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: THEME.layout.borderRadius.full,
@@ -722,7 +797,7 @@ const styles = StyleSheet.create({
   currentMealText: {
     fontSize: THEME.typography.fontSizes.xs,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
     letterSpacing: 0.5,
   },
   mealIconContainer: {
@@ -736,7 +811,7 @@ const styles = StyleSheet.create({
   mealLabel: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: THEME.spacing.sm,
   },
   mealCaloriesContainer: {
@@ -747,15 +822,15 @@ const styles = StyleSheet.create({
   mealCaloriesValue: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.accent.green,
+    color: colors.accent.green,
   },
   mealCaloriesUnit: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   noMealText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.gray,
+    color: colors.text.tertiary,
   },
   addMealButton: {
     width: 32,
@@ -770,21 +845,31 @@ const styles = StyleSheet.create({
   mealItemsTitle: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: THEME.spacing.md,
   },
   mealItemsCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.md,
-    ...THEME.shadows.sm,
+    // Shadow for logged items card
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 1,
+      shadowRadius: 10,
+      elevation: 4,
+    }),
   },
   mealItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: THEME.spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.neutral.lightGray,
+    borderBottomColor: colors.border.light,
   },
   mealItemDot: {
     width: 10,
@@ -798,24 +883,24 @@ const styles = StyleSheet.create({
   mealItemName: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.medium,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   mealItemType: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   mealItemCalories: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
   },
   tipsCard: {
-    backgroundColor: THEME.colors.accent.blue + '10',
+    backgroundColor: isDark ? colors.accent.blue + '15' : colors.accent.blue + '10',
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
     marginBottom: THEME.spacing.xl,
     borderWidth: 1,
-    borderColor: THEME.colors.accent.blue + '20',
+    borderColor: colors.accent.blue + '30',
   },
   tipsHeader: {
     flexDirection: 'row',
@@ -827,18 +912,18 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: THEME.layout.borderRadius.md,
-    backgroundColor: THEME.colors.accent.blue + '20',
+    backgroundColor: colors.accent.blue + '20',
     alignItems: 'center',
     justifyContent: 'center',
   },
   tipsTitle: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.accent.blue,
+    color: colors.accent.blue,
   },
   tipsText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
     lineHeight: 20,
   },
   foodDecoration: {
@@ -855,3 +940,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+

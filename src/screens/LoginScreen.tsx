@@ -9,12 +9,14 @@ import {
   TouchableOpacity,
   Alert,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft, Mail, Lock, LogIn, HelpCircle, Sparkles } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { THEME } from '../constants/theme';
@@ -27,6 +29,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 export const LoginScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { signIn } = useAuth();
+  const { colors, isDark } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -64,8 +67,11 @@ export const LoginScreen = () => {
     }
   };
 
+  const styles = createStyles(colors, isDark);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       {/* Background Decorations */}
       <View style={styles.bgDecor1} />
       <View style={styles.bgDecor2} />
@@ -85,14 +91,14 @@ export const LoginScreen = () => {
               onPress={() => navigation.goBack()}
               style={styles.backButton}
             >
-              <ArrowLeft size={22} color={THEME.colors.neutral.charcoal} />
+              <ArrowLeft size={22} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
 
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
             <View style={styles.welcomeIconContainer}>
-              <LogIn size={28} color={THEME.colors.primary.main} />
+              <LogIn size={28} color={colors.primary.main} />
             </View>
             <Text style={styles.title}>Welcome back!</Text>
             <Text style={styles.subtitle}>
@@ -112,7 +118,7 @@ export const LoginScreen = () => {
                 autoCapitalize="none"
                 autoComplete="email"
                 error={errors.email}
-                leftIcon={<Mail size={20} color={THEME.colors.neutral.darkGray} />}
+                leftIcon={<Mail size={20} color={colors.text.secondary} />}
               />
 
               <Input
@@ -123,11 +129,11 @@ export const LoginScreen = () => {
                 secureTextEntry
                 autoCapitalize="none"
                 error={errors.password}
-                leftIcon={<Lock size={20} color={THEME.colors.neutral.darkGray} />}
+                leftIcon={<Lock size={20} color={colors.text.secondary} />}
               />
 
               <TouchableOpacity style={styles.forgotPassword}>
-                <HelpCircle size={14} color={THEME.colors.primary.main} />
+                <HelpCircle size={14} color={colors.primary.main} />
                 <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
             </View>
@@ -141,7 +147,7 @@ export const LoginScreen = () => {
               loading={loading}
               size="lg"
               fullRounded
-              icon={<ArrowLeft size={18} color={THEME.colors.neutral.white} style={{ transform: [{ rotate: '180deg' }] }} />}
+              icon={<ArrowLeft size={18} color={colors.text.inverse} style={{ transform: [{ rotate: '180deg' }] }} />}
               iconPosition="right"
               style={styles.signInButton}
             />
@@ -165,10 +171,10 @@ export const LoginScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.primary,
   },
   bgDecor1: {
     position: 'absolute',
@@ -177,7 +183,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: THEME.colors.primary.light + '12',
+    backgroundColor: colors.primary.light + '12',
   },
   bgDecor2: {
     position: 'absolute',
@@ -186,7 +192,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: THEME.colors.accent.orange + '08',
+    backgroundColor: colors.accent.orange + '08',
   },
   keyboardView: {
     flex: 1,
@@ -203,7 +209,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: THEME.layout.borderRadius.xl,
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -215,7 +221,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: THEME.layout.borderRadius['2xl'],
-    backgroundColor: THEME.colors.primary.light + '15',
+    backgroundColor: colors.primary.light + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: THEME.spacing.lg,
@@ -223,12 +229,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: THEME.spacing.sm,
   },
   subtitle: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -236,10 +242,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   formCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius['2xl'],
     padding: THEME.spacing.xl,
-    ...THEME.shadows.sm,
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : THEME.shadows.sm),
   },
   forgotPassword: {
     flexDirection: 'row',
@@ -250,7 +259,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
   actionsSection: {
@@ -268,12 +277,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.light,
   },
   dividerText: {
     paddingHorizontal: THEME.spacing.lg,
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.gray,
+    color: colors.text.tertiary,
   },
   signupPrompt: {
     flexDirection: 'row',
@@ -282,11 +291,11 @@ const styles = StyleSheet.create({
   },
   signupText: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   signupLink: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.bold,
   },
 });

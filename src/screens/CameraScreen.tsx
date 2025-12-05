@@ -35,25 +35,19 @@ import {
   PieChart,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTime } from '../hooks/useTime';
 import { useMeals } from '../hooks/useMeals';
 import { analyzeFood, AnalyzeImageResult } from '../services/geminiAI';
-import { Button } from '../components/Button';
 import { THEME } from '../constants/theme';
 import { FoodAnalysis, MealType, RootStackParamList } from '../types';
 
 const { width } = Dimensions.get('window');
 
-const MEAL_CONFIG: Record<MealType, { icon: any; color: string }> = {
-  breakfast: { icon: Coffee, color: THEME.colors.meal.breakfast },
-  lunch: { icon: Sun, color: THEME.colors.meal.lunch },
-  dinner: { icon: Moon, color: THEME.colors.meal.dinner },
-  snack: { icon: Cookie, color: THEME.colors.meal.snack },
-};
-
 export const CameraScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile } = useAuth();
+  const { colors, isDark } = useTheme();
   const { currentMealType } = useTime(profile?.timezone);
   const { addMeal } = useMeals();
 
@@ -63,6 +57,13 @@ export const CameraScreen = () => {
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(null);
   const [selectedMealType, setSelectedMealType] = useState<MealType>(currentMealType);
   const [isSaving, setIsSaving] = useState(false);
+
+  const MEAL_CONFIG: Record<MealType, { icon: any; color: string }> = {
+    breakfast: { icon: Coffee, color: colors.meal.breakfast },
+    lunch: { icon: Sun, color: colors.meal.lunch },
+    dinner: { icon: Moon, color: colors.meal.dinner },
+    snack: { icon: Cookie, color: colors.meal.snack },
+  };
 
   const pickImage = async (useCamera: boolean) => {
     try {
@@ -165,6 +166,8 @@ export const CameraScreen = () => {
     setAnalysis(null);
   };
 
+  const styles = createStyles(colors, isDark);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -173,7 +176,7 @@ export const CameraScreen = () => {
           onPress={() => navigation.goBack()}
           style={styles.closeButton}
         >
-          <X size={22} color={THEME.colors.neutral.charcoal} />
+          <X size={22} color={colors.text.primary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerEmoji}>📸</Text>
@@ -192,7 +195,7 @@ export const CameraScreen = () => {
           <View style={styles.imageSection}>
             <Image source={{ uri: imageUri }} style={styles.previewImage} />
             <TouchableOpacity style={styles.changeButton} onPress={handleReset}>
-              <Camera size={16} color={THEME.colors.neutral.charcoal} />
+              <Camera size={16} color={colors.text.primary} />
               <Text style={styles.changeButtonText}>Change Photo</Text>
             </TouchableOpacity>
           </View>
@@ -228,7 +231,7 @@ export const CameraScreen = () => {
                 style={styles.cameraButton}
                 onPress={() => pickImage(true)}
               >
-                <Camera size={24} color={THEME.colors.neutral.white} />
+                <Camera size={24} color={colors.text.inverse} />
                 <Text style={styles.cameraButtonText}>Take Photo</Text>
               </TouchableOpacity>
 
@@ -236,17 +239,17 @@ export const CameraScreen = () => {
                 style={styles.galleryButton}
                 onPress={() => pickImage(false)}
               >
-                <ImageIcon size={22} color={THEME.colors.primary.main} />
+                <ImageIcon size={22} color={colors.primary.main} />
                 <Text style={styles.galleryButtonText}>Gallery</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
-        {/* Meal Type Selector - Icons Only */}
+        {/* Meal Type Selector */}
         <View style={styles.mealSection}>
           <View style={styles.sectionLabelRow}>
-            <UtensilsCrossed size={18} color={THEME.colors.neutral.charcoal} />
+            <UtensilsCrossed size={18} color={colors.text.primary} />
             <Text style={styles.sectionLabel}>What meal is this?</Text>
           </View>
           <View style={styles.mealPills}>
@@ -264,7 +267,7 @@ export const CameraScreen = () => {
                   ]}
                   onPress={() => setSelectedMealType(type)}
                 >
-                  <Icon size={18} color={isSelected ? THEME.colors.neutral.white : config.color} />
+                  <Icon size={18} color={isSelected ? colors.text.inverse : config.color} />
                   <Text style={[
                     styles.mealPillText,
                     isSelected && styles.mealPillTextActive
@@ -285,7 +288,7 @@ export const CameraScreen = () => {
             disabled={isAnalyzing}
           >
             <View style={styles.analyzeIcon}>
-              <Sparkles size={24} color={THEME.colors.neutral.white} />
+              <Sparkles size={24} color={colors.text.inverse} />
             </View>
             <View style={styles.analyzeContent}>
               <Text style={styles.analyzeTitle}>
@@ -295,21 +298,21 @@ export const CameraScreen = () => {
                 {isAnalyzing ? 'Processing your meal' : 'Get instant calorie estimates'}
               </Text>
             </View>
-            <ArrowRight size={24} color={THEME.colors.neutral.white} />
+            <ArrowRight size={24} color={colors.text.inverse} />
           </TouchableOpacity>
         )}
 
-        {/* Analysis Results - Icons Only */}
+        {/* Analysis Results */}
         {analysis && (
           <View style={styles.resultsSection}>
             {/* Success Header */}
             <View style={styles.resultsHeader}>
               <View style={styles.successBadge}>
-                <Check size={16} color={THEME.colors.neutral.white} />
+                <Check size={16} color={colors.text.inverse} />
               </View>
               <Text style={styles.resultsTitle}>Analysis Complete!</Text>
               <View style={styles.confidencePill}>
-                <Zap size={12} color={THEME.colors.accent.orange} />
+                <Zap size={12} color={colors.accent.orange} />
                 <Text style={styles.confidenceText}>
                   {Math.round(analysis.confidence * 100)}%
                 </Text>
@@ -319,7 +322,7 @@ export const CameraScreen = () => {
             {/* Calories Hero */}
             <View style={styles.caloriesHero}>
               <View style={styles.caloriesIconContainer}>
-                <Flame size={28} color={THEME.colors.accent.orange} fill={THEME.colors.accent.orange} />
+                <Flame size={28} color={colors.accent.orange} fill={colors.accent.orange} />
               </View>
               <View style={styles.caloriesInfo}>
                 <Text style={styles.caloriesLabel}>Total Calories</Text>
@@ -333,7 +336,7 @@ export const CameraScreen = () => {
             {/* Food Items List */}
             <View style={styles.foodsList}>
               <View style={styles.foodsTitleRow}>
-                <Search size={16} color={THEME.colors.neutral.charcoal} />
+                <Search size={16} color={colors.text.primary} />
                 <Text style={styles.foodsTitle}>Detected Foods</Text>
               </View>
               {analysis.foods.map((food, index) => (
@@ -354,27 +357,27 @@ export const CameraScreen = () => {
             {analysis.foods.some((f) => f.macros) && (
               <View style={styles.macrosSection}>
                 <View style={styles.macrosTitleRow}>
-                  <PieChart size={16} color={THEME.colors.neutral.charcoal} />
+                  <PieChart size={16} color={colors.text.primary} />
                   <Text style={styles.macrosTitle}>Nutrition Breakdown</Text>
                 </View>
                 <View style={styles.macrosRow}>
-                  <View style={[styles.macroCard, { backgroundColor: THEME.colors.accent.blue + '12' }]}>
-                    <Beef size={22} color={THEME.colors.accent.blue} />
-                    <Text style={[styles.macroValue, { color: THEME.colors.accent.blue }]}>
+                  <View style={[styles.macroCard, { backgroundColor: colors.accent.blue + '12' }]}>
+                    <Beef size={22} color={colors.accent.blue} />
+                    <Text style={[styles.macroValue, { color: colors.accent.blue }]}>
                       {analysis.foods.reduce((sum, f) => sum + (f.macros?.protein || 0), 0)}g
                     </Text>
                     <Text style={styles.macroLabel}>Protein</Text>
                   </View>
-                  <View style={[styles.macroCard, { backgroundColor: THEME.colors.accent.orange + '12' }]}>
-                    <Wheat size={22} color={THEME.colors.accent.orange} />
-                    <Text style={[styles.macroValue, { color: THEME.colors.accent.orange }]}>
+                  <View style={[styles.macroCard, { backgroundColor: colors.accent.orange + '12' }]}>
+                    <Wheat size={22} color={colors.accent.orange} />
+                    <Text style={[styles.macroValue, { color: colors.accent.orange }]}>
                       {analysis.foods.reduce((sum, f) => sum + (f.macros?.carbs || 0), 0)}g
                     </Text>
                     <Text style={styles.macroLabel}>Carbs</Text>
                   </View>
-                  <View style={[styles.macroCard, { backgroundColor: THEME.colors.accent.purple + '12' }]}>
-                    <Droplets size={22} color={THEME.colors.accent.purple} />
-                    <Text style={[styles.macroValue, { color: THEME.colors.accent.purple }]}>
+                  <View style={[styles.macroCard, { backgroundColor: colors.accent.purple + '12' }]}>
+                    <Droplets size={22} color={colors.accent.purple} />
+                    <Text style={[styles.macroValue, { color: colors.accent.purple }]}>
                       {analysis.foods.reduce((sum, f) => sum + (f.macros?.fat || 0), 0)}g
                     </Text>
                     <Text style={styles.macroLabel}>Fat</Text>
@@ -389,7 +392,7 @@ export const CameraScreen = () => {
               onPress={handleSaveMeal}
               disabled={isSaving}
             >
-              <Check size={20} color={THEME.colors.neutral.white} />
+              <Check size={20} color={colors.text.inverse} />
               <Text style={styles.saveButtonText}>
                 {isSaving ? 'Saving...' : 'Save to My Log'}
               </Text>
@@ -397,7 +400,7 @@ export const CameraScreen = () => {
 
             {/* Disclaimer */}
             <View style={styles.disclaimer}>
-              <AlertCircle size={14} color={THEME.colors.neutral.gray} />
+              <AlertCircle size={14} color={colors.text.tertiary} />
               <Text style={styles.disclaimerText}>
                 Estimates are approximate and based on AI analysis
               </Text>
@@ -409,10 +412,10 @@ export const CameraScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
   },
   header: {
     flexDirection: 'row',
@@ -420,14 +423,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: THEME.spacing.screenPadding,
     paddingVertical: THEME.spacing.md,
-    backgroundColor: THEME.colors.neutral.white,
-    ...THEME.shadows.sm,
+    backgroundColor: colors.background.card,
   },
   closeButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -442,7 +444,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   headerSpacer: {
     width: 44,
@@ -451,8 +453,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
+    flexGrow: 1,
     padding: THEME.spacing.screenPadding,
-    paddingBottom: THEME.spacing['5xl'],
+    paddingBottom: THEME.spacing['3xl'],
   },
   imageSection: {
     marginBottom: THEME.spacing.xl,
@@ -470,22 +473,20 @@ const styles = StyleSheet.create({
     marginTop: THEME.spacing.md,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.full,
-    ...THEME.shadows.sm,
   },
   changeButtonText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
   uploadSection: {
     alignItems: 'center',
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius['2xl'],
     padding: THEME.spacing['2xl'],
     marginBottom: THEME.spacing.xl,
-    ...THEME.shadows.md,
   },
   uploadIllustration: {
     width: 140,
@@ -499,10 +500,9 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: THEME.colors.primary.light + '20',
+    backgroundColor: colors.primary.main + '20',
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.sm,
   },
   mainEmoji: {
     fontSize: 44,
@@ -512,10 +512,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.sm,
   },
   floatingEmoji1: {
     top: 0,
@@ -539,12 +538,12 @@ const styles = StyleSheet.create({
   uploadTitle: {
     fontSize: THEME.typography.fontSizes.xl,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: THEME.spacing.sm,
   },
   uploadSubtitle: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: THEME.spacing.xl,
   },
@@ -556,14 +555,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: THEME.spacing.sm,
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
     paddingVertical: THEME.spacing.md,
     paddingHorizontal: THEME.spacing.xl,
     borderRadius: THEME.layout.borderRadius.full,
-    ...THEME.shadows.glow,
   },
   cameraButtonText: {
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
@@ -571,15 +569,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: THEME.spacing.sm,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     paddingVertical: THEME.spacing.md,
     paddingHorizontal: THEME.spacing.xl,
     borderRadius: THEME.layout.borderRadius.full,
     borderWidth: 2,
-    borderColor: THEME.colors.primary.main,
+    borderColor: colors.primary.main,
   },
   galleryButtonText: {
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
@@ -595,7 +593,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   mealPills: {
     flexDirection: 'row',
@@ -607,28 +605,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     paddingVertical: THEME.spacing.md,
     borderRadius: THEME.layout.borderRadius.xl,
-    ...THEME.shadows.xs,
   },
   mealPillText: {
     fontSize: THEME.typography.fontSizes.xs,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
   },
   mealPillTextActive: {
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
   },
   analyzeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
     marginBottom: THEME.spacing.xl,
     gap: THEME.spacing.md,
-    ...THEME.shadows.glow,
   },
   analyzeIcon: {
     width: 52,
@@ -644,7 +640,7 @@ const styles = StyleSheet.create({
   analyzeTitle: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
     marginBottom: 2,
   },
   analyzeSubtitle: {
@@ -652,10 +648,9 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
   },
   resultsSection: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius['2xl'],
     padding: THEME.spacing.xl,
-    ...THEME.shadows.md,
   },
   resultsHeader: {
     flexDirection: 'row',
@@ -667,7 +662,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: THEME.colors.accent.green,
+    backgroundColor: colors.accent.green,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -675,27 +670,27 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   confidencePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: THEME.colors.accent.orange + '15',
+    backgroundColor: colors.accent.orange + '15',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: THEME.layout.borderRadius.full,
   },
   confidenceText: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.accent.orange,
+    color: colors.accent.orange,
     fontWeight: THEME.typography.fontWeights.bold,
   },
   caloriesHero: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: THEME.spacing.lg,
-    backgroundColor: THEME.colors.accent.orange + '12',
+    backgroundColor: colors.accent.orange + '12',
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
     marginBottom: THEME.spacing.xl,
@@ -704,17 +699,16 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: THEME.layout.borderRadius.xl,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.sm,
   },
   caloriesInfo: {
     flex: 1,
   },
   caloriesLabel: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     marginBottom: 4,
   },
   caloriesRow: {
@@ -725,11 +719,11 @@ const styles = StyleSheet.create({
   caloriesValue: {
     fontSize: THEME.typography.fontSizes['3xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   caloriesUnit: {
     fontSize: THEME.typography.fontSizes.lg,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   foodsList: {
@@ -744,12 +738,12 @@ const styles = StyleSheet.create({
   foodsTitle: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   foodItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     padding: THEME.spacing.md,
     borderRadius: THEME.layout.borderRadius.lg,
     marginBottom: THEME.spacing.sm,
@@ -759,14 +753,14 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
   },
   foodBulletText: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
   },
   foodInfo: {
     flex: 1,
@@ -774,17 +768,17 @@ const styles = StyleSheet.create({
   foodName: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   foodPortion: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   foodCalories: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
   },
   macrosSection: {
     marginBottom: THEME.spacing.xl,
@@ -798,7 +792,7 @@ const styles = StyleSheet.create({
   macrosTitle: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   macrosRow: {
     flexDirection: 'row',
@@ -817,7 +811,7 @@ const styles = StyleSheet.create({
   },
   macroLabel: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   saveButton: {
@@ -825,16 +819,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: THEME.spacing.sm,
-    backgroundColor: THEME.colors.accent.green,
+    backgroundColor: colors.accent.green,
     paddingVertical: THEME.spacing.lg,
     borderRadius: THEME.layout.borderRadius.xl,
     marginBottom: THEME.spacing.md,
-    ...THEME.shadows.md,
   },
   saveButtonText: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
   },
   disclaimer: {
     flexDirection: 'row',
@@ -844,7 +837,7 @@ const styles = StyleSheet.create({
   },
   disclaimerText: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.gray,
+    color: colors.text.tertiary,
     textAlign: 'center',
   },
 });

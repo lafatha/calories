@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextInputProps,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
@@ -28,6 +29,7 @@ export const Input: React.FC<InputProps> = ({
   rightIcon,
   containerStyle,
   secureTextEntry,
+  style,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -53,11 +55,13 @@ export const Input: React.FC<InputProps> = ({
             styles.input,
             leftIcon ? styles.inputWithLeftIcon : undefined,
             (rightIcon || showPasswordToggle) ? styles.inputWithRightIcon : undefined,
+            style,
           ]}
           placeholderTextColor={THEME.colors.neutral.gray}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           secureTextEntry={secureTextEntry && !isPasswordVisible}
+          selectionColor={THEME.colors.primary.main}
           {...props}
         />
 
@@ -102,16 +106,12 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.colors.neutral.lightGray,
     borderRadius: THEME.layout.borderRadius.xl,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: THEME.colors.neutral.mediumGray,
+    position: 'relative',
   },
   inputFocused: {
     borderColor: THEME.colors.primary.main,
     backgroundColor: THEME.colors.neutral.white,
-    shadowColor: THEME.colors.primary.main,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
   },
   inputError: {
     borderColor: THEME.colors.semantic.error,
@@ -124,18 +124,30 @@ const styles = StyleSheet.create({
     fontSize: THEME.typography.fontSizes.md,
     color: THEME.colors.neutral.black,
     fontWeight: THEME.typography.fontWeights.medium,
+    // Remove outline on web - using any to bypass RN type limitations
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+        outlineWidth: 0,
+      } as any,
+    }),
   },
   inputWithLeftIcon: {
     paddingLeft: 8,
   },
   inputWithRightIcon: {
-    paddingRight: 8,
+    paddingRight: 48,
   },
   iconLeft: {
     paddingLeft: 18,
   },
   iconRight: {
-    paddingRight: 18,
+    position: 'absolute',
+    right: 0,
+    height: '100%',
+    width: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   error: {
     fontSize: THEME.typography.fontSizes.sm,

@@ -5,39 +5,55 @@ import { Home, BarChart2, User } from 'lucide-react-native';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ProgressScreen } from '../screens/ProgressScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { useTheme } from '../context/ThemeContext';
 import { THEME } from '../constants/theme';
 import { MainTabParamList } from '../types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const CustomTabBarIcon = ({
-  icon: Icon,
-  focused,
-}: {
-  icon: any;
-  focused: boolean;
-}) => {
-  return (
-    <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
-      <Icon
-        color={focused ? THEME.colors.primary.main : THEME.colors.neutral.gray}
-        size={focused ? 24 : 22}
-        strokeWidth={focused ? 2.5 : 2}
-      />
-      {focused && <View style={styles.activeIndicator} />}
-    </View>
-  );
-};
-
 export const BottomTabNavigator = () => {
+  const { colors, isDark } = useTheme();
+
+  const CustomTabBarIcon = ({
+    icon: Icon,
+    focused,
+  }: {
+    icon: any;
+    focused: boolean;
+  }) => {
+    return (
+      <View style={[
+        styles.iconContainer,
+        focused && { backgroundColor: colors.primary.main + '15' }
+      ]}>
+        <Icon
+          color={focused ? colors.primary.main : colors.text.tertiary}
+          size={focused ? 24 : 22}
+          strokeWidth={focused ? 2.5 : 2}
+        />
+        {focused && (
+          <View style={[styles.activeIndicator, { backgroundColor: colors.primary.main }]} />
+        )}
+      </View>
+    );
+  };
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: colors.background.card,
+            shadowColor: isDark ? 'transparent' : colors.shadow,
+            borderTopColor: isDark ? colors.border.light : 'transparent',
+            borderTopWidth: isDark ? 1 : 0,
+          }
+        ],
         tabBarShowLabel: false,
-        tabBarActiveTintColor: THEME.colors.primary.main,
-        tabBarInactiveTintColor: THEME.colors.neutral.gray,
+        tabBarActiveTintColor: colors.primary.main,
+        tabBarInactiveTintColor: colors.text.tertiary,
       }}
     >
       <Tab.Screen
@@ -81,11 +97,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     paddingHorizontal: 24,
-    backgroundColor: THEME.colors.neutral.white,
     borderRadius: THEME.layout.borderRadius['2xl'],
-    borderTopWidth: 0,
     elevation: 0,
-    shadowColor: THEME.colors.neutral.black,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
     shadowRadius: 24,
@@ -97,15 +110,11 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: THEME.layout.borderRadius.lg,
   },
-  iconContainerActive: {
-    backgroundColor: THEME.colors.primary.light + '15',
-  },
   activeIndicator: {
     position: 'absolute',
     bottom: 6,
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: THEME.colors.primary.main,
   },
 });

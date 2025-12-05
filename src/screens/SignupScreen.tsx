@@ -11,12 +11,14 @@ import {
   Modal,
   FlatList,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft, Mail, Lock, User, Globe, Check, Rocket, Sparkles, Shield } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { THEME } from '../constants/theme';
@@ -30,6 +32,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
 export const SignupScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { signUp } = useAuth();
+  const { colors, isDark } = useTheme();
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -118,6 +121,8 @@ export const SignupScreen = () => {
 
   const selectedTimezone = TIMEZONES.find((tz) => tz.value === timezone);
 
+  const styles = createStyles(colors, isDark);
+
   const renderTimezoneItem = ({ item }: { item: TimezoneOption }) => (
     <TouchableOpacity
       style={[
@@ -137,7 +142,7 @@ export const SignupScreen = () => {
       </Text>
       {item.value === timezone && (
         <View style={styles.checkBadge}>
-          <Check size={16} color={THEME.colors.neutral.white} />
+          <Check size={16} color={colors.text.inverse} />
         </View>
       )}
     </TouchableOpacity>
@@ -145,6 +150,7 @@ export const SignupScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       {/* Background Decorations */}
       <View style={styles.bgDecor1} />
       <View style={styles.bgDecor2} />
@@ -164,7 +170,7 @@ export const SignupScreen = () => {
               onPress={() => (step === 2 ? setStep(1) : navigation.goBack())}
               style={styles.backButton}
             >
-              <ArrowLeft size={22} color={THEME.colors.neutral.charcoal} />
+              <ArrowLeft size={22} color={colors.text.primary} />
             </TouchableOpacity>
 
             {/* Step Indicator */}
@@ -187,9 +193,9 @@ export const SignupScreen = () => {
           <View style={styles.titleSection}>
             <View style={styles.titleIconContainer}>
               {step === 1 ? (
-                <Rocket size={28} color={THEME.colors.primary.main} />
+                <Rocket size={28} color={colors.primary.main} />
               ) : (
-                <Sparkles size={28} color={THEME.colors.primary.main} />
+                <Sparkles size={28} color={colors.primary.main} />
               )}
             </View>
             <Text style={styles.title}>
@@ -216,7 +222,7 @@ export const SignupScreen = () => {
                     autoCapitalize="none"
                     autoComplete="email"
                     error={errors.email}
-                    leftIcon={<Mail size={20} color={THEME.colors.neutral.darkGray} />}
+                    leftIcon={<Mail size={20} color={colors.text.secondary} />}
                   />
 
                   <Input
@@ -228,7 +234,7 @@ export const SignupScreen = () => {
                     autoCapitalize="none"
                     error={errors.password}
                     hint="Must be at least 6 characters"
-                    leftIcon={<Lock size={20} color={THEME.colors.neutral.darkGray} />}
+                    leftIcon={<Lock size={20} color={colors.text.secondary} />}
                   />
 
                   <Input
@@ -239,7 +245,7 @@ export const SignupScreen = () => {
                     secureTextEntry
                     autoCapitalize="none"
                     error={errors.confirmPassword}
-                    leftIcon={<Shield size={20} color={THEME.colors.neutral.darkGray} />}
+                    leftIcon={<Shield size={20} color={colors.text.secondary} />}
                   />
                 </>
               ) : (
@@ -251,7 +257,7 @@ export const SignupScreen = () => {
                     onChangeText={setUsername}
                     autoCapitalize="none"
                     error={errors.username}
-                    leftIcon={<User size={20} color={THEME.colors.neutral.darkGray} />}
+                    leftIcon={<User size={20} color={colors.text.secondary} />}
                   />
 
                   <Input
@@ -261,7 +267,7 @@ export const SignupScreen = () => {
                     onChangeText={setFullName}
                     autoCapitalize="words"
                     error={errors.fullName}
-                    leftIcon={<User size={20} color={THEME.colors.neutral.darkGray} />}
+                    leftIcon={<User size={20} color={colors.text.secondary} />}
                   />
 
                   {/* Timezone Selector */}
@@ -271,7 +277,7 @@ export const SignupScreen = () => {
                       style={styles.timezoneSelector}
                       onPress={() => setShowTimezonePicker(true)}
                     >
-                      <Globe size={20} color={THEME.colors.neutral.darkGray} />
+                      <Globe size={20} color={colors.text.secondary} />
                       <Text style={styles.timezoneText} numberOfLines={1}>
                         {selectedTimezone?.label}
                       </Text>
@@ -291,8 +297,8 @@ export const SignupScreen = () => {
               size="lg"
               fullRounded
               icon={step === 1
-                ? <ArrowLeft size={18} color={THEME.colors.neutral.white} style={{ transform: [{ rotate: '180deg' }] }} />
-                : <Check size={18} color={THEME.colors.neutral.white} />
+                ? <ArrowLeft size={18} color={colors.text.inverse} style={{ transform: [{ rotate: '180deg' }] }} />
+                : <Check size={18} color={colors.text.inverse} />
               }
               iconPosition="right"
               style={styles.actionButton}
@@ -321,7 +327,7 @@ export const SignupScreen = () => {
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Globe size={24} color={THEME.colors.primary.main} />
+              <Globe size={24} color={colors.primary.main} />
               <Text style={styles.modalTitle}>Select Timezone</Text>
               <TouchableOpacity
                 onPress={() => setShowTimezonePicker(false)}
@@ -343,10 +349,10 @@ export const SignupScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.primary,
   },
   bgDecor1: {
     position: 'absolute',
@@ -355,7 +361,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: THEME.colors.accent.green + '10',
+    backgroundColor: colors.accent.green + '10',
   },
   bgDecor2: {
     position: 'absolute',
@@ -364,7 +370,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: THEME.colors.primary.light + '08',
+    backgroundColor: colors.primary.light + '08',
   },
   keyboardView: {
     flex: 1,
@@ -384,7 +390,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: THEME.layout.borderRadius.xl,
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -400,30 +406,30 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.medium,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepDotActive: {
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
   },
   stepDotText: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.white,
+    color: colors.text.inverse,
   },
   stepDotTextInactive: {
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   stepLine: {
     width: 40,
     height: 3,
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.medium,
     marginHorizontal: 8,
     borderRadius: 2,
   },
   stepLineActive: {
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
   },
   headerSpacer: {
     width: 48,
@@ -436,7 +442,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: THEME.layout.borderRadius['2xl'],
-    backgroundColor: THEME.colors.primary.light + '15',
+    backgroundColor: colors.primary.light + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: THEME.spacing.lg,
@@ -444,22 +450,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: THEME.spacing.sm,
   },
   subtitle: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   formSection: {
     flex: 1,
   },
   formCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius['2xl'],
     padding: THEME.spacing.xl,
-    ...THEME.shadows.sm,
+    ...(isDark ? {
+      borderWidth: 1,
+      borderColor: colors.border.light,
+    } : THEME.shadows.sm),
   },
   timezoneContainer: {
     marginBottom: THEME.spacing.lg,
@@ -467,13 +476,13 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
     marginBottom: 10,
   },
   timezoneSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     borderRadius: THEME.layout.borderRadius.xl,
     paddingVertical: 16,
     paddingHorizontal: 18,
@@ -482,7 +491,7 @@ const styles = StyleSheet.create({
   timezoneText: {
     flex: 1,
     fontSize: THEME.typography.fontSizes.md,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   actionsSection: {
@@ -499,11 +508,11 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   loginLink: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.bold,
   },
   modalOverlay: {
@@ -512,7 +521,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderTopLeftRadius: THEME.layout.borderRadius['3xl'],
     borderTopRightRadius: THEME.layout.borderRadius['3xl'],
     maxHeight: '75%',
@@ -520,7 +529,7 @@ const styles = StyleSheet.create({
   modalHandle: {
     width: 40,
     height: 4,
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.medium,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 12,
@@ -532,24 +541,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: THEME.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.neutral.lightGray,
+    borderBottomColor: colors.border.light,
     gap: THEME.spacing.sm,
   },
   modalTitle: {
     flex: 1,
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   modalDoneButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: THEME.colors.primary.light + '20',
+    backgroundColor: colors.primary.light + '20',
     borderRadius: THEME.layout.borderRadius.full,
   },
   modalDoneText: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
   timezoneItem: {
@@ -559,25 +568,25 @@ const styles = StyleSheet.create({
     paddingVertical: THEME.spacing.lg,
     paddingHorizontal: THEME.spacing.xl,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.neutral.lightGray,
+    borderBottomColor: colors.border.light,
   },
   timezoneItemSelected: {
-    backgroundColor: THEME.colors.primary.light + '10',
+    backgroundColor: colors.primary.light + '10',
   },
   timezoneItemText: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     flex: 1,
   },
   timezoneItemTextSelected: {
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
   },
   checkBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: THEME.colors.primary.main,
+    backgroundColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
   },

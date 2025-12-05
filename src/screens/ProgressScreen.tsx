@@ -20,6 +20,7 @@ import {
   Award,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useWeeklyStats, useMeals } from '../hooks/useMeals';
 import { THEME } from '../constants/theme';
 
@@ -27,6 +28,7 @@ const { width } = Dimensions.get('window');
 
 export const ProgressScreen = () => {
   const { profile } = useAuth();
+  const { colors, isDark } = useTheme();
   const { stats } = useMeals();
   const { days, averageCalories, daysOnTrack } = useWeeklyStats();
 
@@ -49,6 +51,8 @@ export const ProgressScreen = () => {
     snack: Cookie,
   };
 
+  const styles = createStyles(colors, isDark);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
@@ -61,19 +65,17 @@ export const ProgressScreen = () => {
           <Text style={styles.subtitle}>Weekly overview</Text>
         </View>
 
-        {/* Streak Hero Card - New Design */}
+        {/* Streak Hero Card */}
         <View style={styles.streakCard}>
-          {/* Streak Number with Ring */}
           <View style={styles.streakRing}>
             <View style={styles.streakInner}>
               <Flame
                 size={28}
-                color={daysOnTrack > 0 ? THEME.colors.accent.orange : THEME.colors.neutral.gray}
-                fill={daysOnTrack > 0 ? THEME.colors.accent.orange : 'transparent'}
+                color={daysOnTrack > 0 ? colors.accent.orange : colors.text.tertiary}
+                fill={daysOnTrack > 0 ? colors.accent.orange : 'transparent'}
               />
               <Text style={styles.streakNumber}>{daysOnTrack}</Text>
             </View>
-            {/* Progress Ring Visual */}
             {[...Array(7)].map((_, i) => (
               <View
                 key={i}
@@ -94,7 +96,6 @@ export const ProgressScreen = () => {
           <Text style={styles.streakLabel}>Day Streak</Text>
           <Text style={styles.streakMotivation}>{getMotivation()}</Text>
 
-          {/* Week Progress Bar */}
           <View style={styles.weekProgress}>
             {days.map((day, index) => {
               const isToday = new Date().toDateString() === new Date(day.date).toDateString();
@@ -106,7 +107,7 @@ export const ProgressScreen = () => {
                     isCompleted && styles.dayBarCompleted,
                     isToday && styles.dayBarToday,
                   ]}>
-                    {isCompleted && <Check size={12} color={THEME.colors.neutral.white} />}
+                    {isCompleted && <Check size={12} color={colors.text.inverse} />}
                   </View>
                   <Text style={[
                     styles.dayLabel,
@@ -123,24 +124,24 @@ export const ProgressScreen = () => {
         {/* Quick Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <View style={[styles.statIconBg, { backgroundColor: THEME.colors.accent.green + '15' }]}>
-              <Target size={20} color={THEME.colors.accent.green} />
+            <View style={[styles.statIconBg, { backgroundColor: colors.accent.green + '15' }]}>
+              <Target size={20} color={colors.accent.green} />
             </View>
             <Text style={styles.statValue}>{daysOnTrack}<Text style={styles.statUnit}>/7</Text></Text>
             <Text style={styles.statLabel}>On Target</Text>
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIconBg, { backgroundColor: THEME.colors.accent.orange + '15' }]}>
-              <Zap size={20} color={THEME.colors.accent.orange} />
+            <View style={[styles.statIconBg, { backgroundColor: colors.accent.orange + '15' }]}>
+              <Zap size={20} color={colors.accent.orange} />
             </View>
             <Text style={styles.statValue}>{averageCalories}</Text>
             <Text style={styles.statLabel}>Avg/Day</Text>
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIconBg, { backgroundColor: THEME.colors.primary.main + '15' }]}>
-              <TrendingUp size={20} color={THEME.colors.primary.main} />
+            <View style={[styles.statIconBg, { backgroundColor: colors.primary.main + '15' }]}>
+              <TrendingUp size={20} color={colors.primary.main} />
             </View>
             <Text style={styles.statValue}>{dailyGoal}</Text>
             <Text style={styles.statLabel}>Goal</Text>
@@ -188,25 +189,27 @@ export const ProgressScreen = () => {
               })}
             </View>
 
-            {/* Goal line indicator */}
-            <View style={styles.goalLineContainer}>
+            {/* Dynamic goal line - positioned based on dailyGoal relative to maxCalories */}
+            <View style={[
+              styles.goalLineContainer,
+              { bottom: 24 + ((dailyGoal / maxCalories) * 100) }
+            ]}>
               <View style={styles.goalLine} />
-              <Text style={styles.goalLineText}>Goal</Text>
+              <Text style={styles.goalLineText}>{dailyGoal}</Text>
             </View>
           </View>
 
-          {/* Legend */}
           <View style={styles.legend}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: THEME.colors.accent.green }]} />
+              <View style={[styles.legendDot, { backgroundColor: colors.accent.green }]} />
               <Text style={styles.legendText}>On Track</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: THEME.colors.neutral.mediumGray }]} />
+              <View style={[styles.legendDot, { backgroundColor: colors.border.medium }]} />
               <Text style={styles.legendText}>Under</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: THEME.colors.secondary.main }]} />
+              <View style={[styles.legendDot, { backgroundColor: colors.secondary.main }]} />
               <Text style={styles.legendText}>Over</Text>
             </View>
           </View>
@@ -218,10 +221,10 @@ export const ProgressScreen = () => {
 
           <View style={styles.breakdownCard}>
             {[
-              { label: 'Breakfast', calories: stats.breakfastCalories, icon: MEAL_ICONS.breakfast, color: THEME.colors.meal.breakfast },
-              { label: 'Lunch', calories: stats.lunchCalories, icon: MEAL_ICONS.lunch, color: THEME.colors.meal.lunch },
-              { label: 'Dinner', calories: stats.dinnerCalories, icon: MEAL_ICONS.dinner, color: THEME.colors.meal.dinner },
-              { label: 'Snacks', calories: stats.snackCalories, icon: MEAL_ICONS.snack, color: THEME.colors.meal.snack },
+              { label: 'Breakfast', calories: stats.breakfastCalories, icon: MEAL_ICONS.breakfast, color: colors.meal.breakfast },
+              { label: 'Lunch', calories: stats.lunchCalories, icon: MEAL_ICONS.lunch, color: colors.meal.lunch },
+              { label: 'Dinner', calories: stats.dinnerCalories, icon: MEAL_ICONS.dinner, color: colors.meal.dinner },
+              { label: 'Snacks', calories: stats.snackCalories, icon: MEAL_ICONS.snack, color: colors.meal.snack },
             ].map((item, index) => {
               const Icon = item.icon;
               return (
@@ -260,7 +263,7 @@ export const ProgressScreen = () => {
         {/* Achievement Card */}
         <View style={styles.achievementCard}>
           <View style={styles.achievementIcon}>
-            <Award size={24} color={THEME.colors.accent.orange} />
+            <Award size={24} color={colors.accent.orange} />
           </View>
           <View style={styles.achievementText}>
             <Text style={styles.achievementTitle}>
@@ -276,14 +279,15 @@ export const ProgressScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
+    flexGrow: 1,
     padding: THEME.spacing.screenPadding,
-    paddingBottom: 140,
+    paddingBottom: 100,
   },
   header: {
     marginBottom: THEME.spacing.xl,
@@ -291,26 +295,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   streakCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius['2xl'],
     padding: THEME.spacing.xl,
     marginBottom: THEME.spacing.lg,
     alignItems: 'center',
-    ...THEME.shadows.md,
   },
   streakRing: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: THEME.spacing.md,
@@ -320,15 +323,14 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
-    ...THEME.shadows.sm,
   },
   streakNumber: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginTop: 2,
   },
   ringDot: {
@@ -336,20 +338,20 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.medium,
   },
   ringDotActive: {
-    backgroundColor: THEME.colors.accent.orange,
+    backgroundColor: colors.accent.orange,
   },
   streakLabel: {
     fontSize: THEME.typography.fontSizes.md,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
     fontWeight: THEME.typography.fontWeights.semibold,
     marginBottom: 4,
   },
   streakMotivation: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.medium,
     marginBottom: THEME.spacing.lg,
   },
@@ -364,25 +366,25 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
   },
   dayBarCompleted: {
-    backgroundColor: THEME.colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   dayBarToday: {
     borderWidth: 2,
-    borderColor: THEME.colors.primary.main,
+    borderColor: colors.primary.main,
   },
   dayLabel: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   dayLabelToday: {
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.bold,
   },
   statsRow: {
@@ -392,11 +394,10 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.md,
     alignItems: 'center',
-    ...THEME.shadows.xs,
   },
   statIconBg: {
     width: 40,
@@ -409,17 +410,17 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   statUnit: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.medium,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   statLabel: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   chartSection: {
@@ -428,14 +429,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: THEME.spacing.md,
   },
   chartContainer: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
-    ...THEME.shadows.sm,
     position: 'relative',
   },
   chartBars: {
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   barCalories: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     marginBottom: 4,
     fontWeight: THEME.typography.fontWeights.medium,
   },
@@ -463,48 +463,47 @@ const styles = StyleSheet.create({
     width: 20,
     borderRadius: THEME.layout.borderRadius.sm,
     minHeight: 8,
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.medium,
   },
   chartBarOnTrack: {
-    backgroundColor: THEME.colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   chartBarOver: {
-    backgroundColor: THEME.colors.secondary.main,
+    backgroundColor: colors.secondary.main,
   },
   chartBarUnder: {
-    backgroundColor: THEME.colors.neutral.mediumGray,
+    backgroundColor: colors.border.medium,
   },
   chartBarToday: {
     borderWidth: 2,
-    borderColor: THEME.colors.primary.main,
+    borderColor: colors.primary.main,
   },
   chartLabel: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     marginTop: THEME.spacing.sm,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   chartLabelToday: {
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.bold,
   },
   goalLineContainer: {
     position: 'absolute',
     left: THEME.spacing.lg,
     right: THEME.spacing.lg,
-    bottom: 75,
     flexDirection: 'row',
     alignItems: 'center',
   },
   goalLine: {
     flex: 1,
     height: 1,
-    backgroundColor: THEME.colors.primary.light,
+    backgroundColor: colors.primary.light,
     marginRight: 8,
   },
   goalLineText: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
     fontWeight: THEME.typography.fontWeights.semibold,
   },
   legend: {
@@ -525,16 +524,15 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: THEME.typography.fontSizes.xs,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
   },
   breakdownSection: {
     marginBottom: THEME.spacing.xl,
   },
   breakdownCard: {
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
-    ...THEME.shadows.sm,
   },
   breakdownItem: {
     flexDirection: 'row',
@@ -542,7 +540,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: THEME.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.neutral.lightGray,
+    borderBottomColor: colors.border.light,
   },
   breakdownLeft: {
     flexDirection: 'row',
@@ -558,7 +556,7 @@ const styles = StyleSheet.create({
   },
   breakdownLabel: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.charcoal,
+    color: colors.text.primary,
     fontWeight: THEME.typography.fontWeights.medium,
   },
   breakdownRight: {
@@ -581,7 +579,7 @@ const styles = StyleSheet.create({
   breakdownValue: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     minWidth: 65,
     textAlign: 'right',
   },
@@ -595,29 +593,28 @@ const styles = StyleSheet.create({
   breakdownTotalLabel: {
     fontSize: THEME.typography.fontSizes.md,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
   },
   breakdownTotalValue: {
     fontSize: THEME.typography.fontSizes.lg,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.primary.main,
+    color: colors.primary.main,
   },
   achievementCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: colors.background.card,
     borderRadius: THEME.layout.borderRadius.xl,
     padding: THEME.spacing.lg,
     gap: THEME.spacing.md,
     borderWidth: 1,
-    borderColor: THEME.colors.accent.orange + '30',
-    ...THEME.shadows.xs,
+    borderColor: colors.accent.orange + '30',
   },
   achievementIcon: {
     width: 48,
     height: 48,
     borderRadius: THEME.layout.borderRadius.lg,
-    backgroundColor: THEME.colors.accent.orange + '15',
+    backgroundColor: colors.accent.orange + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -627,12 +624,12 @@ const styles = StyleSheet.create({
   achievementTitle: {
     fontSize: THEME.typography.fontSizes.base,
     fontWeight: THEME.typography.fontWeights.bold,
-    color: THEME.colors.neutral.black,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   achievementSubtitle: {
     fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
+    color: colors.text.secondary,
     lineHeight: 18,
   },
 });
