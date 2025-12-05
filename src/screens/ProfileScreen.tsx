@@ -27,7 +27,6 @@ import {
   Moon,
   Shield,
   HelpCircle,
-  Clock,
   Flame,
   Star,
   Settings,
@@ -35,7 +34,6 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useTime } from '../hooks/useTime';
 import { useWeeklyStats } from '../hooks/useMeals';
 import { THEME, COLORS } from '../constants/theme';
 import { TIMEZONES } from '../constants/timezones';
@@ -45,7 +43,6 @@ import { GoldShimmer, GoldShimmerBox } from '../components/GoldShimmer';
 export const ProfileScreen = () => {
   const { user, profile, signOut, updateProfile, isSigningOut } = useAuth();
   const { isDark, themeMode, setThemeMode, colors } = useTheme();
-  const { formattedTime, formattedDate } = useTime(profile?.timezone);
   const { consecutiveStreak } = useWeeklyStats();
 
   const [isEditingGoal, setIsEditingGoal] = useState(false);
@@ -250,14 +247,6 @@ export const ProfileScreen = () => {
             </View>
           </View>
 
-          {/* Time Display */}
-          <View style={styles.timeDisplay}>
-            <Clock size={20} color={colors.primary.main} />
-            <View>
-              <Text style={styles.timeValue}>{formattedTime}</Text>
-              <Text style={styles.dateValue}>{formattedDate}</Text>
-            </View>
-          </View>
         </View>
 
         {/* Goals Section */}
@@ -606,24 +595,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     width: 1,
     height: 40,
     backgroundColor: colors.border.light,
-  },
-  timeDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: THEME.spacing.md,
-    backgroundColor: colors.background.tertiary,
-    paddingVertical: THEME.spacing.md,
-    paddingHorizontal: THEME.spacing.lg,
-    borderRadius: THEME.layout.borderRadius.xl,
-  },
-  timeValue: {
-    fontSize: THEME.typography.fontSizes.md,
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: colors.text.primary,
-  },
-  dateValue: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: colors.text.secondary,
   },
   section: {
     marginBottom: THEME.spacing.xl,

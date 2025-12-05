@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Dimensions,
+  Animated,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,9 +24,220 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useWeeklyStats, useMeals } from '../hooks/useMeals';
-import { THEME } from '../constants/theme';
+import { THEME, COLORS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
+
+// Gold Shimmer Ring Component
+const GoldShimmerRing: React.FC<{
+  size: number;
+  strokeWidth: number;
+  progress: number; // 0-7 for days
+  children: React.ReactNode;
+}> = ({ size, strokeWidth, progress, children }) => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Shimmer animation
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ])
+    );
+    shimmer.start();
+
+    // Progress animation
+    Animated.timing(progressAnim, {
+      toValue: progress,
+      duration: 800,
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+
+    return () => shimmer.stop();
+  }, [progress]);
+
+  const borderColor = shimmerAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [COLORS.gold.dark, COLORS.gold.light, COLORS.gold.dark],
+  });
+
+  const glowOpacity = shimmerAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.4, 0.8, 0.4],
+  });
+
+  const innerSize = size - strokeWidth * 2;
+  const isActive = progress > 0;
+
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      {/* Background ring */}
+      <View
+        style={{
+          position: 'absolute',
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: strokeWidth,
+          borderColor: '#E5E7EB',
+        }}
+      />
+      
+      {/* Gold shimmer ring overlay */}
+      {isActive && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderWidth: strokeWidth,
+            borderColor: borderColor,
+            shadowColor: COLORS.gold.main,
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: Platform.OS === 'ios' ? glowOpacity : 0.6,
+            shadowRadius: 12,
+            elevation: Platform.OS === 'android' ? 8 : 0,
+          }}
+        />
+      )}
+
+      {/* Inner circle with children */}
+      <View
+        style={{
+          width: innerSize,
+          height: innerSize,
+          borderRadius: innerSize / 2,
+          backgroundColor: '#FFFFFF',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {children}
+      </View>
+
+      {/* Progress dots around the ring */}
+      {[...Array(7)].map((_, i) => {
+        const angle = (i * 360) / 7 - 90; // Start from top
+        const radian = (angle * Math.PI) / 180;
+        const dotRadius = (size - strokeWidth) / 2;
+        const x = Math.cos(radian) * dotRadius;
+        const y = Math.sin(radian) * dotRadius;
+        const isCompleted = i < progress;
+
+        return (
+          <Animated.View
+            key={i}
+            style={{
+              position: 'absolute',
+              width: 12,
+              height: 12,
+              borderRadius: 6,
+              backgroundColor: isCompleted ? COLORS.gold.main : '#D1D5DB',
+              left: size / 2 + x - 6,
+              top: size / 2 + y - 6,
+              shadowColor: isCompleted ? COLORS.gold.main : 'transparent',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: isCompleted ? 0.8 : 0,
+              shadowRadius: 4,
+              elevation: isCompleted ? 4 : 0,
+            }}
+          />
+        );
+      })}
+    </View>
+  );
+};
+
+// Gold Shimmer Day Box Component
+const GoldShimmerDayBox: React.FC<{
+  isCompleted: boolean;
+  isToday: boolean;
+  children: React.ReactNode;
+  colors: any;
+}> = ({ isCompleted, isToday, children, colors }) => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!isCompleted) return;
+
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ])
+    );
+    shimmer.start();
+
+    return () => shimmer.stop();
+  }, [isCompleted]);
+
+  const backgroundColor = shimmerAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [COLORS.gold.dark, COLORS.gold.light, COLORS.gold.dark],
+  });
+
+  if (!isCompleted) {
+    return (
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          backgroundColor: colors.background.tertiary,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 6,
+          borderWidth: isToday ? 2 : 0,
+          borderColor: isToday ? colors.primary.main : 'transparent',
+        }}
+      >
+        {children}
+      </View>
+    );
+  }
+
+  return (
+    <Animated.View
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: backgroundColor,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 6,
+        borderWidth: isToday ? 2 : 0,
+        borderColor: isToday ? colors.primary.main : 'transparent',
+        shadowColor: COLORS.gold.main,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.5,
+        shadowRadius: 6,
+        elevation: Platform.OS === 'android' ? 6 : 0,
+      }}
+    >
+      {children}
+    </Animated.View>
+  );
+};
 
 export const ProgressScreen = () => {
   const { profile } = useAuth();
@@ -67,31 +280,18 @@ export const ProgressScreen = () => {
 
         {/* Streak Hero Card */}
         <View style={styles.streakCard}>
-          <View style={styles.streakRing}>
-            <View style={styles.streakInner}>
-              <Flame
-                size={28}
-                color={consecutiveStreak > 0 ? colors.accent.orange : colors.text.tertiary}
-                fill={consecutiveStreak > 0 ? colors.accent.orange : 'transparent'}
-              />
-              <Text style={styles.streakNumber}>{consecutiveStreak}</Text>
-            </View>
-            {[...Array(7)].map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.ringDot,
-                  {
-                    transform: [
-                      { rotate: `${(i * 360) / 7}deg` },
-                      { translateY: -48 },
-                    ],
-                  },
-                  i < consecutiveStreak && styles.ringDotActive,
-                ]}
-              />
-            ))}
-          </View>
+          <GoldShimmerRing
+            size={140}
+            strokeWidth={8}
+            progress={consecutiveStreak}
+          >
+            <Flame
+              size={32}
+              color={consecutiveStreak > 0 ? COLORS.gold.main : colors.text.tertiary}
+              fill={consecutiveStreak > 0 ? COLORS.gold.shimmer : 'transparent'}
+            />
+            <Text style={styles.streakNumber}>{consecutiveStreak}</Text>
+          </GoldShimmerRing>
 
           <Text style={styles.streakLabel}>Day Streak</Text>
           <Text style={styles.streakMotivation}>{getMotivation()}</Text>
@@ -102,16 +302,17 @@ export const ProgressScreen = () => {
               const isCompleted = day.goalMet;
               return (
                 <View key={index} style={styles.dayColumn}>
-                  <View style={[
-                    styles.dayBar,
-                    isCompleted && styles.dayBarCompleted,
-                    isToday && styles.dayBarToday,
-                  ]}>
-                    {isCompleted && <Check size={12} color={colors.text.inverse} />}
-                  </View>
+                  <GoldShimmerDayBox
+                    isCompleted={isCompleted}
+                    isToday={isToday}
+                    colors={colors}
+                  >
+                    {isCompleted && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+                  </GoldShimmerDayBox>
                   <Text style={[
                     styles.dayLabel,
-                    isToday && styles.dayLabelToday
+                    isToday && styles.dayLabelToday,
+                    isCompleted && styles.dayLabelCompleted
                   ]}>
                     {weekDays[new Date(day.date).getDay()].charAt(0)}
                   </Text>
@@ -309,39 +510,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     marginBottom: THEME.spacing.lg,
     alignItems: 'center',
   },
-  streakRing: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.background.tertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: THEME.spacing.md,
-    position: 'relative',
-  },
-  streakInner: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.background.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   streakNumber: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
     color: colors.text.primary,
-    marginTop: 2,
-  },
-  ringDot: {
-    position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.border.medium,
-  },
-  ringDotActive: {
-    backgroundColor: colors.accent.orange,
+    marginTop: 4,
   },
   streakLabel: {
     fontSize: THEME.typography.fontSizes.md,
@@ -358,25 +531,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   weekProgress: {
     flexDirection: 'row',
     gap: THEME.spacing.sm,
+    marginTop: THEME.spacing.md,
   },
   dayColumn: {
     alignItems: 'center',
-  },
-  dayBar: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.background.tertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  dayBarCompleted: {
-    backgroundColor: colors.accent.green,
-  },
-  dayBarToday: {
-    borderWidth: 2,
-    borderColor: colors.primary.main,
   },
   dayLabel: {
     fontSize: THEME.typography.fontSizes.xs,
@@ -385,6 +543,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   dayLabelToday: {
     color: colors.primary.main,
+    fontWeight: THEME.typography.fontWeights.bold,
+  },
+  dayLabelCompleted: {
+    color: COLORS.gold.dark,
     fontWeight: THEME.typography.fontWeights.bold,
   },
   statsRow: {

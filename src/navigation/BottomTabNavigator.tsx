@@ -22,10 +22,7 @@ export const BottomTabNavigator = () => {
     focused: boolean;
   }) => {
     return (
-      <View style={[
-        styles.iconContainer,
-        focused && { backgroundColor: colors.primary.main + '15' }
-      ]}>
+      <View style={styles.iconContainer}>
         <Icon
           color={focused ? colors.primary.main : colors.text.tertiary}
           size={focused ? 24 : 22}
