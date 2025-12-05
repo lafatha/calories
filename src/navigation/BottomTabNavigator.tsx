@@ -90,14 +90,14 @@ export const BottomTabNavigator = () => {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    bottom: Platform.OS === 'web' ? 16 : 24,
-    left: 20,
-    right: 20,
+    bottom: 0,
+    left: 0,
+    right: 0,
     height: 70,
     paddingTop: 12,
     paddingBottom: 12,
     paddingHorizontal: 24,
-    borderRadius: THEME.layout.borderRadius['2xl'],
+    borderRadius: 0,
     elevation: 0,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,

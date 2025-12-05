@@ -97,24 +97,6 @@ export const LandingScreen = () => {
         ))}
       </View>
 
-      {/* Social Proof */}
-      <View style={styles.socialProof}>
-        <View style={styles.avatarStack}>
-          <View style={[styles.avatar, styles.avatar1]}>
-            <Text style={styles.avatarText}>A</Text>
-          </View>
-          <View style={[styles.avatar, styles.avatar2]}>
-            <Text style={styles.avatarText}>B</Text>
-          </View>
-          <View style={[styles.avatar, styles.avatar3]}>
-            <Text style={styles.avatarText}>C</Text>
-          </View>
-        </View>
-        <Text style={styles.socialText}>
-          <Text style={styles.socialHighlight}>10,000+</Text> people tracking their health
-        </Text>
-      </View>
-
       {/* CTA Section */}
       <View style={styles.ctaSection}>
         <Button
@@ -275,53 +257,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   featureTitle: {
     fontSize: THEME.typography.fontSizes.sm,
     fontWeight: THEME.typography.fontWeights.semibold,
-    color: colors.text.primary,
-  },
-  socialProof: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: THEME.spacing.md,
-    marginBottom: THEME.spacing.xl,
-    paddingVertical: THEME.spacing.md,
-  },
-  avatarStack: {
-    flexDirection: 'row',
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.background.primary,
-  },
-  avatar1: {
-    zIndex: 3,
-    backgroundColor: colors.accent.orange,
-  },
-  avatar2: {
-    marginLeft: -12,
-    zIndex: 2,
-    backgroundColor: colors.accent.blue,
-  },
-  avatar3: {
-    marginLeft: -12,
-    zIndex: 1,
-    backgroundColor: colors.accent.green,
-  },
-  avatarText: {
-    fontSize: THEME.typography.fontSizes.sm,
-    fontWeight: THEME.typography.fontWeights.bold,
-    color: colors.text.inverse,
-  },
-  socialText: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: colors.text.secondary,
-  },
-  socialHighlight: {
-    fontWeight: THEME.typography.fontWeights.bold,
     color: colors.text.primary,
   },
   ctaSection: {
