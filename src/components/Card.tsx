@@ -25,11 +25,10 @@ const styles = StyleSheet.create({
   default: {
     backgroundColor: THEME.colors.neutral.white,
     padding: THEME.spacing.cardPadding,
-    ...THEME.shadows.subtle,
+    ...THEME.shadows.sm,
   },
   highlighted: {
-    backgroundColor: THEME.colors.primary.lightLime,
+    backgroundColor: THEME.colors.neutral.lightGray,
     padding: THEME.spacing.screenPadding,
   },
 });
-
