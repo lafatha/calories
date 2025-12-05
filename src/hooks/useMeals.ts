@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Meal, MealType, FoodAnalysis } from '../types';
@@ -88,6 +89,41 @@ export const useMeals = (date?: Date) => {
     return getLocalDateString(targetDate, timezone);
   }, [date?.getTime(), timezone]);
 
+  // Cache helper functions
+  const getCacheKey = useCallback((dateStr: string) => {
+    return `meals_cache_${user?.id}_${dateStr}`;
+  }, [user?.id]);
+
+  const loadFromCache = useCallback(async (dateStr: string) => {
+    try {
+      const cacheKey = getCacheKey(dateStr);
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        // Check if cache is still valid (less than 5 minutes old)
+        const cacheAge = Date.now() - (parsed.timestamp || 0);
+        if (cacheAge < 5 * 60 * 1000) { // 5 minutes
+          return parsed.data;
+        }
+      }
+    } catch (error) {
+      console.error('[Meals] Cache load error:', error);
+    }
+    return null;
+  }, [getCacheKey]);
+
+  const saveToCache = useCallback(async (dateStr: string, data: { meals: DayMeals; stats: MealStats }) => {
+    try {
+      const cacheKey = getCacheKey(dateStr);
+      await AsyncStorage.setItem(cacheKey, JSON.stringify({
+        data,
+        timestamp: Date.now(),
+      }));
+    } catch (error) {
+      console.error('[Meals] Cache save error:', error);
+    }
+  }, [getCacheKey]);
+
   // Get UTC boundaries for a local date in user's timezone
   const getUTCBoundaries = useCallback((localDateStr: string, tz: string) => {
     try {
@@ -162,15 +198,42 @@ export const useMeals = (date?: Date) => {
     const isDateChange = lastDateRef.current !== dateString;
     const shouldShowLoading = !hasFetchedRef.current || isDateChange || showLoading;
     
-    if (shouldShowLoading) {
-      setIsLoading(true);
-    }
     setError(null);
     lastDateRef.current = dateString;
 
-    try {
-      const { start: startOfDay, end: endOfDay } = getUTCBoundaries(dateString, timezone);
+    // Try to load from cache first
+    const cachedData = await loadFromCache(dateString);
+    let useCache = false;
+    
+    if (cachedData) {
+      console.log('[Meals] Loaded from cache for', dateString);
+      setMeals(cachedData.meals);
+      setStats(cachedData.stats);
+      setIsLoading(false);
+      hasFetchedRef.current = true;
+      useCache = true;
+    } else if (shouldShowLoading) {
+      setIsLoading(true);
+    }
 
+    // Always fetch in background to update cache (even if we have cache)
+    try {
+      // Get UTC boundaries with error handling
+      let startOfDay: string;
+      let endOfDay: string;
+      
+      try {
+        const boundaries = getUTCBoundaries(dateString, timezone);
+        startOfDay = boundaries.start;
+        endOfDay = boundaries.end;
+      } catch (boundaryError) {
+        console.error('[Meals] Timezone boundary error, using fallback:', boundaryError);
+        // Fallback to simple UTC
+        startOfDay = `${dateString}T00:00:00.000Z`;
+        endOfDay = `${dateString}T23:59:59.999Z`;
+      }
+
+      // Fetch meals
       const { data, error: fetchError } = await supabase
         .from('meals')
         .select('*')
@@ -179,12 +242,16 @@ export const useMeals = (date?: Date) => {
         .lte('logged_at', endOfDay)
         .order('logged_at', { ascending: true });
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        // If we have cached data, use it and don't show error
+        if (useCache) {
+          console.log('[Meals] Fetch error but using cached data');
+          return;
+        }
+        throw fetchError;
+      }
       
       console.log(`[Meals] Fetched ${data?.length || 0} meals for ${dateString}`);
-      data?.forEach((meal: any) => {
-        console.log(`[Meals] - ${meal.meal_type}: ${meal.food_name} at ${meal.logged_at}`);
-      });
 
       // Organize meals by type
       const organized: DayMeals = {
@@ -220,8 +287,7 @@ export const useMeals = (date?: Date) => {
         }
       });
 
-      setMeals(organized);
-      setStats({
+      const newStats = {
         totalCalories: totalCals,
         breakfastCalories: breakfastCals,
         lunchCalories: lunchCals,
@@ -230,16 +296,55 @@ export const useMeals = (date?: Date) => {
         goalProgress: profile?.daily_calorie_goal 
           ? Math.min((totalCals / profile.daily_calorie_goal) * 100, 100)
           : 0,
-      });
+      };
+
+      setMeals(organized);
+      setStats(newStats);
+      
+      // Save to cache
+      await saveToCache(dateString, { meals: organized, stats: newStats });
       
       hasFetchedRef.current = true;
+      
+      // If we used cache initially, silently update without showing loading
+      if (useCache) {
+        console.log('[Meals] Silently updated from server');
+      }
     } catch (err) {
-      console.error('Error fetching meals:', err);
-      setError('Failed to load meals');
+      console.error('[Meals] Error fetching meals:', err);
+      
+      // Only show error if we don't have cached data
+      if (!useCache) {
+        setError('Failed to load meals');
+      }
+      // Set empty state on error
+      setMeals({
+        breakfast: [],
+        lunch: [],
+        dinner: [],
+        snack: [],
+      });
+      setStats({
+        totalCalories: 0,
+        breakfastCalories: 0,
+        lunchCalories: 0,
+        dinnerCalories: 0,
+        snackCalories: 0,
+        goalProgress: 0,
+      });
+      
+      // Try to load from cache as fallback
+      const fallbackCache = await loadFromCache(dateString);
+      if (fallbackCache) {
+        console.log('[Meals] Using cached data as fallback');
+        setMeals(fallbackCache.meals);
+        setStats(fallbackCache.stats);
+      }
     } finally {
+      // Always ensure loading is false
       setIsLoading(false);
     }
-  }, [user, dateString, timezone, getUTCBoundaries, profile?.daily_calorie_goal]);
+  }, [user, dateString, timezone, getUTCBoundaries, profile?.daily_calorie_goal, loadFromCache, saveToCache]);
 
   // Add a new meal
   const addMeal = async (

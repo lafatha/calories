@@ -13,11 +13,11 @@ interface ThemeContextType {
 
 // Light Mode Colors - Clean and modern
 const lightColors = {
-    // Primary
+    // Primary - iOS blue
     primary: {
-        main: '#6366F1',      // Indigo
-        light: '#818CF8',
-        dark: '#4F46E5',
+        main: '#007AFF',      // iOS blue
+        light: '#5AC8FA',
+        dark: '#0051D5',
     },
     // Secondary
     secondary: {
@@ -25,13 +25,13 @@ const lightColors = {
         light: '#FB7185',
         dark: '#E11D48',
     },
-    // Accent colors
+    // Accent colors - Softer iOS colors
     accent: {
-        green: '#10B981',
-        orange: '#F59E0B',
-        blue: '#3B82F6',
-        purple: '#8B5CF6',
-        red: '#EF4444',
+        green: '#34C759',    // iOS green
+        orange: '#FF9500',    // iOS orange
+        blue: '#007AFF',      // iOS blue
+        purple: '#AF52DE',    // Softer purple
+        red: '#FF3B30',       // iOS red
     },
     // Neutrals
     neutral: {
@@ -44,11 +44,11 @@ const lightColors = {
         charcoal: '#374151',
         black: '#111827',
     },
-    // Backgrounds
+    // Backgrounds - Softer like iOS
     background: {
         primary: '#FFFFFF',
-        secondary: '#F9FAFB',
-        tertiary: '#F3F4F6',
+        secondary: '#F5F5F7',  // Softer iOS gray
+        tertiary: '#F1F1F3',   // Even softer
         card: '#FFFFFF',
     },
     // Text
@@ -58,12 +58,12 @@ const lightColors = {
         tertiary: '#9CA3AF',
         inverse: '#FFFFFF',
     },
-    // Meal colors
+    // Meal colors - Softer
     meal: {
-        breakfast: '#F59E0B',
-        lunch: '#10B981',
-        dinner: '#6366F1',
-        snack: '#EC4899',
+        breakfast: '#FF9500',  // iOS orange
+        lunch: '#34C759',      // iOS green
+        dinner: '#AF52DE',     // Softer purple
+        snack: '#FF2D55',      // Softer pink
     },
     // Semantic
     semantic: {
@@ -72,10 +72,10 @@ const lightColors = {
         error: '#EF4444',
         info: '#3B82F6',
     },
-    // Borders
+    // Borders - Softer
     border: {
-        light: '#E5E7EB',
-        medium: '#D1D5DB',
+        light: '#E8E8ED',  // Softer border
+        medium: '#D1D1D6', // Softer medium
     },
     // Shadows
     shadow: 'rgba(0, 0, 0, 0.08)',
