@@ -225,10 +225,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Sign out
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    setUser(null);
-    setProfile(null);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.log('Sign out error:', error.message);
+      }
+    } catch (error) {
+      console.log('Sign out exception:', error);
+    } finally {
+      // Always clear local state regardless of API result
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   // Update profile

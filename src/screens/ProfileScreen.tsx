@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
+import {
   User,
   Mail,
   Globe,
@@ -17,6 +17,16 @@ import {
   LogOut,
   ChevronRight,
   Edit3,
+  Check,
+  X,
+  Bell,
+  Moon,
+  Shield,
+  HelpCircle,
+  Clock,
+  Flame,
+  Star,
+  Settings,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTime } from '../hooks/useTime';
@@ -27,7 +37,7 @@ import { TIMEZONES } from '../constants/timezones';
 export const ProfileScreen = () => {
   const { user, profile, signOut, updateProfile } = useAuth();
   const { formattedTime, formattedDate } = useTime(profile?.timezone);
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [calorieGoal, setCalorieGoal] = useState(
     profile?.daily_calorie_goal?.toString() || '2000'
@@ -39,7 +49,7 @@ export const ProfileScreen = () => {
   const handleSaveGoal = async () => {
     const newGoal = parseInt(calorieGoal, 10);
     if (isNaN(newGoal) || newGoal < 500 || newGoal > 10000) {
-      Alert.alert('Invalid Goal', 'Please enter a valid calorie goal between 500 and 10,000');
+      Alert.alert('Invalid Goal', 'Please enter a value between 500 and 10,000');
       return;
     }
 
@@ -48,10 +58,9 @@ export const ProfileScreen = () => {
     setIsLoading(false);
 
     if (error) {
-      Alert.alert('Error', 'Failed to update calorie goal');
+      Alert.alert('Error', 'Failed to update goal');
     } else {
       setIsEditing(false);
-      Alert.alert('Success', 'Calorie goal updated successfully');
     }
   };
 
@@ -78,158 +87,215 @@ export const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
+          <TouchableOpacity style={styles.settingsButton}>
+            <Settings size={22} color={THEME.colors.neutral.charcoal} />
+          </TouchableOpacity>
         </View>
 
-        {/* Profile Card */}
+        {/* Profile Hero Card */}
         <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{getInitials()}</Text>
+          {/* Avatar with Ring */}
+          <View style={styles.avatarSection}>
+            <View style={styles.avatarRing}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{getInitials()}</Text>
+              </View>
+            </View>
+            <View style={styles.levelBadge}>
+              <Star size={14} color={THEME.colors.accent.orange} fill={THEME.colors.accent.orange} />
             </View>
           </View>
-          
+
           <Text style={styles.userName}>
             {profile?.full_name || profile?.username || 'User'}
           </Text>
-          <Text style={styles.userEmail}>{user?.email}</Text>
-          
-          {/* Local Time Display */}
+          <Text style={styles.userHandle}>@{profile?.username || 'username'}</Text>
+
+          {/* Stats Row */}
+          <View style={styles.profileStats}>
+            <View style={styles.profileStat}>
+              <View style={styles.profileStatIcon}>
+                <Flame size={16} color={THEME.colors.accent.orange} />
+              </View>
+              <Text style={styles.profileStatValue}>7</Text>
+              <Text style={styles.profileStatLabel}>Day Streak</Text>
+            </View>
+            <View style={styles.profileStatDivider} />
+            <View style={styles.profileStat}>
+              <View style={styles.profileStatIcon}>
+                <Target size={16} color={THEME.colors.accent.green} />
+              </View>
+              <Text style={styles.profileStatValue}>{profile?.daily_calorie_goal || 2000}</Text>
+              <Text style={styles.profileStatLabel}>Daily Goal</Text>
+            </View>
+          </View>
+
+          {/* Time Display */}
           <View style={styles.timeDisplay}>
-            <Text style={styles.timeValue}>{formattedTime}</Text>
-            <Text style={styles.dateValue}>{formattedDate}</Text>
+            <Clock size={20} color={THEME.colors.primary.main} />
+            <View>
+              <Text style={styles.timeValue}>{formattedTime}</Text>
+              <Text style={styles.dateValue}>{formattedDate}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Goals Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Target size={18} color={THEME.colors.primary.main} />
+            <Text style={styles.sectionTitle}>Your Goals</Text>
+          </View>
+
+          <View style={styles.goalCard}>
+            <View style={styles.goalHeader}>
+              <View style={styles.goalIcon}>
+                <Target size={22} color={THEME.colors.accent.green} />
+              </View>
+              <View style={styles.goalInfo}>
+                <Text style={styles.goalLabel}>Daily Calorie Target</Text>
+                {isEditing ? (
+                  <View style={styles.editRow}>
+                    <TextInput
+                      style={styles.editInput}
+                      value={calorieGoal}
+                      onChangeText={setCalorieGoal}
+                      keyboardType="numeric"
+                      maxLength={5}
+                    />
+                    <Text style={styles.editUnit}>kcal</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.goalValue}>
+                    {profile?.daily_calorie_goal || 2000} kcal/day
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {isEditing ? (
+              <View style={styles.editActions}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsEditing(false);
+                    setCalorieGoal(profile?.daily_calorie_goal?.toString() || '2000');
+                  }}
+                  style={styles.actionButton}
+                >
+                  <X size={20} color={THEME.colors.neutral.darkGray} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleSaveGoal}
+                  style={[styles.actionButton, styles.actionButtonPrimary]}
+                  disabled={isLoading}
+                >
+                  <Check size={20} color={THEME.colors.neutral.white} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.editButton}>
+                <Edit3 size={18} color={THEME.colors.primary.main} />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
         {/* Settings Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
-          
-          {/* Calorie Goal Setting */}
-          <View style={styles.settingCard}>
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIcon, { backgroundColor: THEME.colors.accent.green + '20' }]}>
-                  <Target size={20} color={THEME.colors.accent.green} />
-                </View>
-                <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>Daily Calorie Goal</Text>
-                  {isEditing ? (
-                    <View style={styles.editInputContainer}>
-                      <TextInput
-                        style={styles.editInput}
-                        value={calorieGoal}
-                        onChangeText={setCalorieGoal}
-                        keyboardType="numeric"
-                        maxLength={5}
-                      />
-                      <Text style={styles.editUnit}>kcal</Text>
-                    </View>
-                  ) : (
-                    <Text style={styles.settingValue}>
-                      {profile?.daily_calorie_goal || 2000} kcal
-                    </Text>
-                  )}
-                </View>
-              </View>
-              {isEditing ? (
-                <View style={styles.editActions}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setIsEditing(false);
-                      setCalorieGoal(profile?.daily_calorie_goal?.toString() || '2000');
-                    }}
-                    style={styles.cancelButton}
-                  >
-                    <Text style={styles.cancelText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleSaveGoal}
-                    style={styles.saveButton}
-                    disabled={isLoading}
-                  >
-                    <Text style={styles.saveText}>
-                      {isLoading ? 'Saving...' : 'Save'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity onPress={() => setIsEditing(true)}>
-                  <Edit3 size={20} color={THEME.colors.neutral.darkGray} />
-                </TouchableOpacity>
-              )}
-            </View>
+          <View style={styles.sectionHeader}>
+            <Settings size={18} color={THEME.colors.primary.main} />
+            <Text style={styles.sectionTitle}>Settings</Text>
           </View>
 
-          {/* Timezone Setting */}
-          <View style={styles.settingCard}>
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIcon, { backgroundColor: THEME.colors.primary.main + '20' }]}>
-                  <Globe size={20} color={THEME.colors.primary.main} />
-                </View>
-                <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>Timezone</Text>
-                  <Text style={styles.settingValue}>
-                    {selectedTimezone?.label} ({selectedTimezone?.offset})
-                  </Text>
-                </View>
+          <View style={styles.settingsCard}>
+            <TouchableOpacity style={styles.settingRow}>
+              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.accent.purple + '15' }]}>
+                <Globe size={20} color={THEME.colors.accent.purple} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>Timezone</Text>
+                <Text style={styles.settingValue}>{selectedTimezone?.label}</Text>
               </View>
               <ChevronRight size={20} color={THEME.colors.neutral.gray} />
-            </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.settingRow}>
+              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.accent.orange + '15' }]}>
+                <Bell size={20} color={THEME.colors.accent.orange} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>Notifications</Text>
+                <Text style={styles.settingValue}>Enabled</Text>
+              </View>
+              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.settingRow}>
+              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.accent.blue + '15' }]}>
+                <Moon size={20} color={THEME.colors.accent.blue} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>Dark Mode</Text>
+                <Text style={styles.settingValue}>Off</Text>
+              </View>
+              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          
-          <View style={styles.settingCard}>
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
-                  <User size={20} color={THEME.colors.neutral.charcoal} />
-                </View>
-                <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>Username</Text>
-                  <Text style={styles.settingValue}>{profile?.username || 'Not set'}</Text>
-                </View>
-              </View>
-            </View>
+          <View style={styles.sectionHeader}>
+            <User size={18} color={THEME.colors.primary.main} />
+            <Text style={styles.sectionTitle}>Account</Text>
           </View>
-          
-          <View style={styles.settingCard}>
+
+          <View style={styles.settingsCard}>
             <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
-                  <Mail size={20} color={THEME.colors.neutral.charcoal} />
-                </View>
-                <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>Email</Text>
-                  <Text style={styles.settingValue}>{user?.email}</Text>
-                </View>
+              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
+                <Mail size={20} color={THEME.colors.neutral.charcoal} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>Email</Text>
+                <Text style={styles.settingValue}>{user?.email}</Text>
               </View>
             </View>
+
+            <TouchableOpacity style={styles.settingRow}>
+              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
+                <Shield size={20} color={THEME.colors.neutral.charcoal} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>Privacy & Security</Text>
+              </View>
+              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.settingRow}>
+              <View style={[styles.settingIcon, { backgroundColor: THEME.colors.neutral.lightGray }]}>
+                <HelpCircle size={20} color={THEME.colors.neutral.charcoal} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>Help & Support</Text>
+              </View>
+              <ChevronRight size={20} color={THEME.colors.neutral.gray} />
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Sign Out Button */}
-        <View style={styles.signOutSection}>
-          <Button
-            title="Sign Out"
-            onPress={handleSignOut}
-            variant="outline"
-            size="lg"
-            icon={<LogOut size={18} color={THEME.colors.neutral.black} />}
-            style={styles.signOutButton}
-          />
-        </View>
+        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+          <LogOut size={20} color={THEME.colors.secondary.main} />
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
 
         {/* App Version */}
         <Text style={styles.versionText}>Calories AI v1.0.0</Text>
@@ -241,36 +307,59 @@ export const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.neutral.white,
+    backgroundColor: THEME.colors.background.secondary,
   },
   scrollContent: {
     padding: THEME.spacing.screenPadding,
-    paddingBottom: 120,
+    paddingBottom: 140,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: THEME.spacing.xl,
   },
   title: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.black,
-    letterSpacing: THEME.typography.letterSpacing.tight,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: THEME.layout.borderRadius.lg,
+    backgroundColor: THEME.colors.neutral.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...THEME.shadows.xs,
   },
   profileCard: {
-    alignItems: 'center',
-    backgroundColor: THEME.colors.neutral.lightGray,
+    backgroundColor: THEME.colors.neutral.white,
     borderRadius: THEME.layout.borderRadius['2xl'],
-    padding: THEME.spacing['2xl'],
-    marginBottom: THEME.spacing['2xl'],
+    padding: THEME.spacing.xl,
+    alignItems: 'center',
+    marginBottom: THEME.spacing.xl,
+    ...THEME.shadows.md,
   },
-  avatarContainer: {
+  avatarSection: {
+    position: 'relative',
     marginBottom: THEME.spacing.lg,
   },
+  avatarRing: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    padding: 4,
+    borderWidth: 3,
+    borderColor: THEME.colors.primary.main,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: THEME.colors.neutral.black,
+    width: '100%',
+    height: '100%',
+    borderRadius: 46,
+    backgroundColor: THEME.colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -279,71 +368,198 @@ const styles = StyleSheet.create({
     fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.white,
   },
+  levelBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: THEME.colors.neutral.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...THEME.shadows.sm,
+  },
   userName: {
     fontSize: THEME.typography.fontSizes.xl,
-    fontWeight: THEME.typography.fontWeights.semibold,
+    fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.black,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  userEmail: {
+  userHandle: {
     fontSize: THEME.typography.fontSizes.base,
     color: THEME.colors.neutral.darkGray,
     marginBottom: THEME.spacing.lg,
   },
-  timeDisplay: {
+  profileStats: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.neutral.white,
-    paddingVertical: THEME.spacing.md,
+    marginBottom: THEME.spacing.lg,
+  },
+  profileStat: {
+    alignItems: 'center',
     paddingHorizontal: THEME.spacing.xl,
-    borderRadius: THEME.layout.borderRadius.lg,
+  },
+  profileStatIcon: {
+    marginBottom: 4,
+  },
+  profileStatValue: {
+    fontSize: THEME.typography.fontSizes.xl,
+    fontWeight: THEME.typography.fontWeights.bold,
+    color: THEME.colors.neutral.black,
+  },
+  profileStatLabel: {
+    fontSize: THEME.typography.fontSizes.sm,
+    color: THEME.colors.neutral.darkGray,
+    marginTop: 2,
+  },
+  profileStatDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: THEME.colors.neutral.mediumGray,
+  },
+  timeDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.md,
+    backgroundColor: THEME.colors.neutral.lightGray,
+    paddingVertical: THEME.spacing.md,
+    paddingHorizontal: THEME.spacing.lg,
+    borderRadius: THEME.layout.borderRadius.xl,
   },
   timeValue: {
-    fontSize: THEME.typography.fontSizes.lg,
-    fontWeight: THEME.typography.fontWeights.semibold,
+    fontSize: THEME.typography.fontSizes.md,
+    fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.black,
-    marginBottom: 2,
   },
   dateValue: {
     fontSize: THEME.typography.fontSizes.sm,
     color: THEME.colors.neutral.darkGray,
   },
   section: {
-    marginBottom: THEME.spacing['2xl'],
+    marginBottom: THEME.spacing.xl,
   },
-  sectionTitle: {
-    fontSize: THEME.typography.fontSizes.sm,
-    fontWeight: THEME.typography.fontWeights.semibold,
-    color: THEME.colors.neutral.darkGray,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
     marginBottom: THEME.spacing.md,
   },
-  settingCard: {
-    backgroundColor: THEME.colors.neutral.lightGray,
-    borderRadius: THEME.layout.borderRadius.lg,
-    marginBottom: THEME.spacing.sm,
-    overflow: 'hidden',
+  sectionTitle: {
+    fontSize: THEME.typography.fontSizes.md,
+    fontWeight: THEME.typography.fontWeights.bold,
+    color: THEME.colors.neutral.black,
   },
-  settingRow: {
+  goalCard: {
+    backgroundColor: THEME.colors.neutral.white,
+    borderRadius: THEME.layout.borderRadius.xl,
+    padding: THEME.spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: THEME.spacing.md,
+    ...THEME.shadows.sm,
   },
-  settingLeft: {
+  goalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: THEME.spacing.md,
     flex: 1,
   },
-  settingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: THEME.layout.borderRadius.md,
+  goalIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: THEME.layout.borderRadius.lg,
+    backgroundColor: THEME.colors.accent.green + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  settingInfo: {
+  goalInfo: {
+    flex: 1,
+  },
+  goalLabel: {
+    fontSize: THEME.typography.fontSizes.base,
+    fontWeight: THEME.typography.fontWeights.semibold,
+    color: THEME.colors.neutral.black,
+    marginBottom: 2,
+  },
+  goalValue: {
+    fontSize: THEME.typography.fontSizes.sm,
+    color: THEME.colors.accent.green,
+    fontWeight: THEME.typography.fontWeights.medium,
+  },
+  editRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  editInput: {
+    backgroundColor: THEME.colors.neutral.lightGray,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: THEME.layout.borderRadius.md,
+    fontSize: THEME.typography.fontSizes.base,
+    color: THEME.colors.neutral.black,
+    fontWeight: THEME.typography.fontWeights.semibold,
+    minWidth: 60,
+    textAlign: 'center',
+    borderWidth: 2,
+    borderColor: THEME.colors.primary.main,
+  },
+  editUnit: {
+    fontSize: THEME.typography.fontSizes.sm,
+    color: THEME.colors.neutral.darkGray,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: THEME.colors.primary.light + '15',
+    borderRadius: THEME.layout.borderRadius.full,
+  },
+  editButtonText: {
+    fontSize: THEME.typography.fontSizes.sm,
+    color: THEME.colors.primary.main,
+    fontWeight: THEME.typography.fontWeights.semibold,
+  },
+  editActions: {
+    flexDirection: 'row',
+    gap: THEME.spacing.sm,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: THEME.colors.neutral.lightGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonPrimary: {
+    backgroundColor: THEME.colors.accent.green,
+  },
+  settingsCard: {
+    backgroundColor: THEME.colors.neutral.white,
+    borderRadius: THEME.layout.borderRadius.xl,
+    overflow: 'hidden',
+    ...THEME.shadows.sm,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: THEME.spacing.lg,
+    gap: THEME.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME.colors.neutral.lightGray,
+  },
+  settingIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: THEME.layout.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingContent: {
     flex: 1,
   },
   settingLabel: {
@@ -356,53 +572,22 @@ const styles = StyleSheet.create({
     fontSize: THEME.typography.fontSizes.sm,
     color: THEME.colors.neutral.darkGray,
   },
-  editInputContainer: {
+  signOutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: THEME.spacing.xs,
-  },
-  editInput: {
-    backgroundColor: THEME.colors.neutral.white,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: THEME.layout.borderRadius.sm,
-    fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.black,
-    minWidth: 60,
-    textAlign: 'center',
-  },
-  editUnit: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
-  },
-  editActions: {
-    flexDirection: 'row',
+    justifyContent: 'center',
     gap: THEME.spacing.sm,
+    paddingVertical: THEME.spacing.lg,
+    backgroundColor: THEME.colors.secondary.main + '10',
+    borderRadius: THEME.layout.borderRadius.xl,
+    marginBottom: THEME.spacing.lg,
+    borderWidth: 1,
+    borderColor: THEME.colors.secondary.main + '25',
   },
-  cancelButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  cancelText: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.darkGray,
-  },
-  saveButton: {
-    backgroundColor: THEME.colors.neutral.black,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: THEME.layout.borderRadius.sm,
-  },
-  saveText: {
-    fontSize: THEME.typography.fontSizes.sm,
-    color: THEME.colors.neutral.white,
-    fontWeight: THEME.typography.fontWeights.medium,
-  },
-  signOutSection: {
-    marginBottom: THEME.spacing.xl,
-  },
-  signOutButton: {
-    borderColor: THEME.colors.neutral.mediumGray,
+  signOutText: {
+    fontSize: THEME.typography.fontSizes.base,
+    fontWeight: THEME.typography.fontWeights.semibold,
+    color: THEME.colors.secondary.main,
   },
   versionText: {
     fontSize: THEME.typography.fontSizes.sm,
@@ -410,4 +595,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-

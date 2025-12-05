@@ -1,10 +1,11 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ENV } from '../config/env';
 
 let supabaseInstance: SupabaseClient | null = null;
 
 const getStorage = () => {
-  // Check if we're in a browser environment
+  // Check if we're in a browser/web environment
   if (typeof window !== 'undefined' && window.localStorage) {
     return {
       getItem: (key: string) => {
@@ -31,19 +32,8 @@ const getStorage = () => {
     };
   }
   
-  // For React Native, use AsyncStorage
-  try {
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    return AsyncStorage;
-  } catch {
-    // Fallback to memory storage
-    const memoryStorage: { [key: string]: string } = {};
-    return {
-      getItem: (key: string) => memoryStorage[key] || null,
-      setItem: (key: string, value: string) => { memoryStorage[key] = value; },
-      removeItem: (key: string) => { delete memoryStorage[key]; },
-    };
-  }
+  // For React Native, use AsyncStorage directly
+  return AsyncStorage;
 };
 
 const createSupabaseClient = (): SupabaseClient => {

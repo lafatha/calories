@@ -11,6 +11,8 @@ import { SignupScreen } from './src/screens/SignupScreen';
 import { CameraScreen } from './src/screens/CameraScreen';
 import { BottomTabNavigator } from './src/navigation/BottomTabNavigator';
 import { ActivityIndicator, Text } from 'react-native';
+import { Sparkles } from 'lucide-react-native';
+import { THEME } from './src/constants/theme';
 
 type RootStackParamList = {
   Landing: undefined;
@@ -28,7 +30,10 @@ function RootNavigator() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#000" />
+        <View style={styles.loadingIconContainer}>
+          <Sparkles size={32} color={THEME.colors.neutral.white} />
+        </View>
+        <ActivityIndicator size="small" color={THEME.colors.primary.main} style={styles.loadingSpinner} />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
@@ -39,8 +44,8 @@ function RootNavigator() {
       {isAuthenticated ? (
         <>
           <Stack.Screen name="Main" component={BottomTabNavigator} />
-          <Stack.Screen 
-            name="Camera" 
+          <Stack.Screen
+            name="Camera"
             component={CameraScreen}
             options={{ presentation: 'modal' }}
           />
@@ -74,17 +79,30 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: THEME.colors.neutral.white,
   },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: THEME.colors.neutral.white,
+  },
+  loadingIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: THEME.colors.primary.main,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    ...THEME.shadows.glow,
+  },
+  loadingSpinner: {
+    marginBottom: 12,
   },
   loadingText: {
-    marginTop: 12,
     fontSize: 14,
-    color: '#666',
+    color: THEME.colors.neutral.darkGray,
+    fontWeight: '500',
   },
 });

@@ -38,7 +38,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      
+
       <View
         style={[
           styles.inputContainer,
@@ -47,7 +47,7 @@ export const Input: React.FC<InputProps> = ({
         ]}
       >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
-        
+
         <TextInput
           style={[
             styles.input,
@@ -60,7 +60,7 @@ export const Input: React.FC<InputProps> = ({
           secureTextEntry={secureTextEntry && !isPasswordVisible}
           {...props}
         />
-        
+
         {showPasswordToggle && (
           <TouchableOpacity
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -73,12 +73,12 @@ export const Input: React.FC<InputProps> = ({
             )}
           </TouchableOpacity>
         )}
-        
+
         {rightIcon && !showPasswordToggle && (
           <View style={styles.iconRight}>{rightIcon}</View>
         )}
       </View>
-      
+
       {error && <Text style={styles.error}>{error}</Text>}
       {hint && !error && <Text style={styles.hint}>{hint}</Text>}
     </View>
@@ -87,36 +87,43 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
     fontSize: THEME.typography.fontSizes.sm,
-    fontWeight: THEME.typography.fontWeights.medium,
+    fontWeight: THEME.typography.fontWeights.semibold,
     color: THEME.colors.neutral.charcoal,
-    marginBottom: 8,
+    marginBottom: 10,
+    letterSpacing: 0.2,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: THEME.colors.neutral.lightGray,
-    borderRadius: THEME.layout.borderRadius.md,
-    borderWidth: 1.5,
+    borderRadius: THEME.layout.borderRadius.xl,
+    borderWidth: 2,
     borderColor: 'transparent',
   },
   inputFocused: {
-    borderColor: THEME.colors.neutral.black,
+    borderColor: THEME.colors.primary.main,
     backgroundColor: THEME.colors.neutral.white,
+    shadowColor: THEME.colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputError: {
     borderColor: THEME.colors.semantic.error,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#FEF2F2',
   },
   input: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
     fontSize: THEME.typography.fontSizes.md,
     color: THEME.colors.neutral.black,
+    fontWeight: THEME.typography.fontWeights.medium,
   },
   inputWithLeftIcon: {
     paddingLeft: 8,
@@ -125,19 +132,20 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   iconLeft: {
-    paddingLeft: 16,
+    paddingLeft: 18,
   },
   iconRight: {
-    paddingRight: 16,
+    paddingRight: 18,
   },
   error: {
     fontSize: THEME.typography.fontSizes.sm,
     color: THEME.colors.semantic.error,
-    marginTop: 6,
+    marginTop: 8,
+    fontWeight: THEME.typography.fontWeights.medium,
   },
   hint: {
     fontSize: THEME.typography.fontSizes.sm,
     color: THEME.colors.neutral.darkGray,
-    marginTop: 6,
+    marginTop: 8,
   },
 });

@@ -1,51 +1,63 @@
-// Modern Apple-inspired theme for Calories AI App
+// Modern Blue-Purple Premium Theme for Calories AI App
 export const COLORS = {
   primary: {
-    main: '#007AFF', // iOS Blue
-    light: '#5AC8FA',
-    dark: '#0051A8',
-    gradient: ['#007AFF', '#5856D6'],
+    main: '#4F46E5',      // Electric Indigo
+    light: '#818CF8',     // Light Indigo
+    dark: '#3730A3',      // Dark Indigo
+    gradient: ['#4F46E5', '#7C3AED'], // Indigo to Purple
+  },
+  secondary: {
+    main: '#F43F5E',      // Rose
+    light: '#FB7185',     // Light Rose
+    dark: '#E11D48',      // Dark Rose
   },
   accent: {
-    green: '#34C759', // Success green
-    orange: '#FF9500', // Warning orange  
-    red: '#FF3B30', // Error/Alert red
-    purple: '#AF52DE', // Purple accent
-    pink: '#FF2D55', // Pink accent
-    teal: '#5AC8FA', // Teal accent
+    green: '#10B981',     // Emerald green
+    orange: '#F59E0B',    // Amber  
+    red: '#EF4444',       // Red
+    purple: '#A855F7',    // Violet
+    pink: '#EC4899',      // Pink
+    teal: '#14B8A6',      // Teal
+    blue: '#3B82F6',      // Blue
   },
   neutral: {
     white: '#FFFFFF',
-    offWhite: '#FAFAFA',
-    lightGray: '#F2F2F7', // iOS system background
-    mediumGray: '#E5E5EA',
-    gray: '#C7C7CC',
-    darkGray: '#8E8E93',
-    charcoal: '#3A3A3C',
-    black: '#1C1C1E',
+    offWhite: '#FAFBFC',
+    lightGray: '#F1F5F9', // Slate 100
+    mediumGray: '#E2E8F0', // Slate 200
+    gray: '#94A3B8',      // Slate 400
+    darkGray: '#64748B',  // Slate 500
+    charcoal: '#334155',  // Slate 700
+    black: '#0F172A',     // Slate 900
   },
   semantic: {
-    success: '#34C759',
-    warning: '#FF9500',
-    error: '#FF3B30',
-    info: '#007AFF',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
   background: {
     primary: '#FFFFFF',
-    secondary: '#F2F2F7',
-    tertiary: '#FFFFFF',
+    secondary: '#F8FAFC',
+    tertiary: '#F1F5F9',
+    gradient: ['#F8FAFC', '#EEF2FF'], // Subtle indigo tint
   },
   text: {
-    primary: '#1C1C1E',
-    secondary: '#8E8E93',
-    tertiary: '#C7C7CC',
+    primary: '#0F172A',
+    secondary: '#64748B',
+    tertiary: '#94A3B8',
     inverse: '#FFFFFF',
   },
   meal: {
-    breakfast: '#FF9500', // Orange for morning
-    lunch: '#34C759', // Green for midday
-    dinner: '#AF52DE', // Purple for evening
-    snack: '#5AC8FA', // Teal for snacks
+    breakfast: '#F59E0B',   // Warm amber for morning
+    lunch: '#10B981',       // Fresh green for midday
+    dinner: '#8B5CF6',      // Purple for evening
+    snack: '#06B6D4',       // Cyan for snacks
+  },
+  glass: {
+    background: 'rgba(255, 255, 255, 0.85)',
+    border: 'rgba(255, 255, 255, 0.3)',
+    shadow: 'rgba(79, 70, 229, 0.1)',
   },
 };
 
@@ -60,11 +72,11 @@ export const TYPOGRAPHY = {
     base: 15,
     md: 17,
     lg: 20,
-    xl: 22,
+    xl: 24,
     '2xl': 28,
     '3xl': 34,
-    '4xl': 40,
-    hero: 48,
+    '4xl': 42,
+    hero: 52,
   },
   fontWeights: {
     regular: '400' as const,
@@ -83,6 +95,7 @@ export const TYPOGRAPHY = {
     tight: -0.5,
     normal: 0,
     wide: 0.5,
+    wider: 1,
   },
 };
 
@@ -96,6 +109,7 @@ export const SPACING = {
   '3xl': 32,
   '4xl': 40,
   '5xl': 48,
+  '6xl': 64,
   screenPadding: 20,
   cardPadding: 16,
 };
@@ -108,13 +122,14 @@ export const LAYOUT = {
     lg: 16,
     xl: 20,
     '2xl': 24,
+    '3xl': 32,
     full: 9999,
   },
   safeArea: {
     top: 44,
     bottom: 34,
   },
-  maxWidth: 428, // iPhone 14 Pro Max width
+  maxWidth: 428,
 };
 
 export const SHADOWS = {
@@ -126,39 +141,53 @@ export const SHADOWS = {
     elevation: 0,
   },
   xs: {
-    shadowColor: '#000',
+    shadowColor: COLORS.neutral.black,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.03,
     shadowRadius: 2,
     elevation: 1,
   },
   sm: {
-    shadowColor: '#000',
+    shadowColor: COLORS.neutral.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
   md: {
-    shadowColor: '#000',
+    shadowColor: COLORS.neutral.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 4,
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: COLORS.neutral.black,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 16,
     elevation: 8,
   },
   xl: {
-    shadowColor: '#000',
+    shadowColor: COLORS.neutral.black,
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.16,
+    shadowOpacity: 0.12,
     shadowRadius: 24,
     elevation: 12,
+  },
+  glow: {
+    shadowColor: COLORS.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  glowSoft: {
+    shadowColor: COLORS.primary.light,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
 };
 
@@ -177,6 +206,18 @@ export const ANIMATIONS = {
   },
 };
 
+export const GRADIENTS = {
+  primary: ['#4F46E5', '#7C3AED'],
+  primarySoft: ['#818CF8', '#A78BFA'],
+  secondary: ['#F43F5E', '#EC4899'],
+  accent: ['#06B6D4', '#3B82F6'],
+  warm: ['#F59E0B', '#F43F5E'],
+  cool: ['#10B981', '#06B6D4'],
+  purple: ['#8B5CF6', '#A855F7'],
+  dark: ['#1E293B', '#0F172A'],
+  glass: ['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)'],
+};
+
 export const THEME = {
   colors: COLORS,
   typography: TYPOGRAPHY,
@@ -184,6 +225,7 @@ export const THEME = {
   layout: LAYOUT,
   shadows: SHADOWS,
   animations: ANIMATIONS,
+  gradients: GRADIENTS,
 };
 
 export default THEME;

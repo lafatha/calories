@@ -8,16 +8,19 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
+import { ArrowLeft, Mail, Lock, LogIn, HelpCircle, Sparkles } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { THEME } from '../constants/theme';
 import { RootStackParamList } from '../types';
+
+const { width, height } = Dimensions.get('window');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -63,6 +66,10 @@ export const LoginScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      {/* Background Decorations */}
+      <View style={styles.bgDecor1} />
+      <View style={styles.bgDecor2} />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -78,46 +85,52 @@ export const LoginScreen = () => {
               onPress={() => navigation.goBack()}
               style={styles.backButton}
             >
-              <ArrowLeft size={24} color={THEME.colors.neutral.black} />
+              <ArrowLeft size={22} color={THEME.colors.neutral.charcoal} />
             </TouchableOpacity>
           </View>
 
-          {/* Title Section */}
-          <View style={styles.titleSection}>
-            <Text style={styles.title}>Welcome back</Text>
+          {/* Welcome Section */}
+          <View style={styles.welcomeSection}>
+            <View style={styles.welcomeIconContainer}>
+              <LogIn size={28} color={THEME.colors.primary.main} />
+            </View>
+            <Text style={styles.title}>Welcome back!</Text>
             <Text style={styles.subtitle}>
-              Sign in to continue tracking your nutrition
+              Sign in to continue tracking your nutrition journey
             </Text>
           </View>
 
           {/* Form Section */}
           <View style={styles.formSection}>
-            <Input
-              label="Email"
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              error={errors.email}
-              leftIcon={<Mail size={20} color={THEME.colors.neutral.darkGray} />}
-            />
+            <View style={styles.formCard}>
+              <Input
+                label="Email"
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                error={errors.email}
+                leftIcon={<Mail size={20} color={THEME.colors.neutral.darkGray} />}
+              />
 
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              error={errors.password}
-              leftIcon={<Lock size={20} color={THEME.colors.neutral.darkGray} />}
-            />
+              <Input
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                error={errors.password}
+                leftIcon={<Lock size={20} color={THEME.colors.neutral.darkGray} />}
+              />
 
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={styles.forgotPassword}>
+                <HelpCircle size={14} color={THEME.colors.primary.main} />
+                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Actions Section */}
@@ -127,8 +140,17 @@ export const LoginScreen = () => {
               onPress={handleLogin}
               loading={loading}
               size="lg"
+              fullRounded
+              icon={<ArrowLeft size={18} color={THEME.colors.neutral.white} style={{ transform: [{ rotate: '180deg' }] }} />}
+              iconPosition="right"
               style={styles.signInButton}
             />
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
 
             <View style={styles.signupPrompt}>
               <Text style={styles.signupText}>Don't have an account? </Text>
@@ -148,6 +170,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME.colors.neutral.white,
   },
+  bgDecor1: {
+    position: 'absolute',
+    top: -80,
+    right: -80,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: THEME.colors.primary.light + '12',
+  },
+  bgDecor2: {
+    position: 'absolute',
+    bottom: 100,
+    left: -60,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: THEME.colors.accent.orange + '08',
+  },
   keyboardView: {
     flex: 1,
   },
@@ -157,42 +197,61 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: THEME.spacing.md,
-    paddingBottom: THEME.spacing.xl,
+    paddingBottom: THEME.spacing.lg,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: THEME.layout.borderRadius.md,
+    width: 48,
+    height: 48,
+    borderRadius: THEME.layout.borderRadius.xl,
     backgroundColor: THEME.colors.neutral.lightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  titleSection: {
-    marginBottom: THEME.spacing['3xl'],
+  welcomeSection: {
+    alignItems: 'center',
+    marginBottom: THEME.spacing['2xl'],
+  },
+  welcomeIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: THEME.layout.borderRadius['2xl'],
+    backgroundColor: THEME.colors.primary.light + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: THEME.spacing.lg,
   },
   title: {
     fontSize: THEME.typography.fontSizes['2xl'],
     fontWeight: THEME.typography.fontWeights.bold,
     color: THEME.colors.neutral.black,
     marginBottom: THEME.spacing.sm,
-    letterSpacing: THEME.typography.letterSpacing.tight,
   },
   subtitle: {
-    fontSize: THEME.typography.fontSizes.md,
+    fontSize: THEME.typography.fontSizes.base,
     color: THEME.colors.neutral.darkGray,
+    textAlign: 'center',
     lineHeight: 24,
   },
   formSection: {
     flex: 1,
   },
+  formCard: {
+    backgroundColor: THEME.colors.neutral.white,
+    borderRadius: THEME.layout.borderRadius['2xl'],
+    padding: THEME.spacing.xl,
+    ...THEME.shadows.sm,
+  },
   forgotPassword: {
+    flexDirection: 'row',
     alignSelf: 'flex-end',
-    marginTop: -8,
+    alignItems: 'center',
+    gap: 6,
+    marginTop: THEME.spacing.xs,
   },
   forgotPasswordText: {
     fontSize: THEME.typography.fontSizes.sm,
     color: THEME.colors.primary.main,
-    fontWeight: THEME.typography.fontWeights.medium,
+    fontWeight: THEME.typography.fontWeights.semibold,
   },
   actionsSection: {
     paddingVertical: THEME.spacing['2xl'],
@@ -200,6 +259,21 @@ const styles = StyleSheet.create({
   signInButton: {
     width: '100%',
     marginBottom: THEME.spacing.xl,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: THEME.spacing.xl,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: THEME.colors.neutral.mediumGray,
+  },
+  dividerText: {
+    paddingHorizontal: THEME.spacing.lg,
+    fontSize: THEME.typography.fontSizes.sm,
+    color: THEME.colors.neutral.gray,
   },
   signupPrompt: {
     flexDirection: 'row',
@@ -212,8 +286,7 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontSize: THEME.typography.fontSizes.base,
-    color: THEME.colors.neutral.black,
-    fontWeight: THEME.typography.fontWeights.semibold,
+    color: THEME.colors.primary.main,
+    fontWeight: THEME.typography.fontWeights.bold,
   },
 });
-
