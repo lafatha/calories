@@ -28,52 +28,34 @@ import { THEME, COLORS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
 
-// Gold Shimmer Ring Component
+// Gold Shimmer Ring Component with rotating shine effect
 const GoldShimmerRing: React.FC<{
   size: number;
   strokeWidth: number;
   progress: number; // 0-7 for days
   children: React.ReactNode;
 }> = ({ size, strokeWidth, progress, children }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Shimmer animation
-    const shimmer = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1500,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-      ])
+    if (progress <= 0) return;
+
+    // Rotating shine animation - continuous loop
+    const rotate = Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 2500,
+        useNativeDriver: true,
+      })
     );
-    shimmer.start();
+    rotate.start();
 
-    // Progress animation
-    Animated.timing(progressAnim, {
-      toValue: progress,
-      duration: 800,
-      useNativeDriver: Platform.OS !== 'web',
-    }).start();
+    return () => rotate.stop();
+  }, [progress, rotateAnim]);
 
-    return () => shimmer.stop();
-  }, [progress]);
-
-  const borderColor = shimmerAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [COLORS.gold.dark, COLORS.gold.light, COLORS.gold.dark],
-  });
-
-  const glowOpacity = shimmerAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.4, 0.8, 0.4],
+  const rotation = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
   });
 
   const innerSize = size - strokeWidth * 2;
@@ -81,7 +63,7 @@ const GoldShimmerRing: React.FC<{
 
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* Background ring */}
+      {/* Background ring - gray */}
       <View
         style={{
           position: 'absolute',
@@ -93,23 +75,53 @@ const GoldShimmerRing: React.FC<{
         }}
       />
       
-      {/* Gold shimmer ring overlay */}
+      {/* Gold ring - full solid gold when active */}
       {isActive && (
-        <Animated.View
+        <View
           style={{
             position: 'absolute',
             width: size,
             height: size,
             borderRadius: size / 2,
             borderWidth: strokeWidth,
-            borderColor: borderColor,
+            borderColor: COLORS.gold.main,
             shadowColor: COLORS.gold.main,
             shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: Platform.OS === 'ios' ? glowOpacity : 0.6,
-            shadowRadius: 12,
+            shadowOpacity: 0.6,
+            shadowRadius: 10,
             elevation: Platform.OS === 'android' ? 8 : 0,
           }}
         />
+      )}
+
+      {/* Rotating shine highlight */}
+      {isActive && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            width: size,
+            height: size,
+            transform: [{ rotate: rotation }],
+          }}
+        >
+          {/* Shine spot at top */}
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: size / 2 - 8,
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              backgroundColor: COLORS.gold.light,
+              shadowColor: COLORS.gold.light,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 1,
+              shadowRadius: 8,
+              elevation: 10,
+            }}
+          />
+        </Animated.View>
       )}
 
       {/* Inner circle with children */}
@@ -125,74 +137,41 @@ const GoldShimmerRing: React.FC<{
       >
         {children}
       </View>
-
-      {/* Progress dots around the ring */}
-      {[...Array(7)].map((_, i) => {
-        const angle = (i * 360) / 7 - 90; // Start from top
-        const radian = (angle * Math.PI) / 180;
-        const dotRadius = (size - strokeWidth) / 2;
-        const x = Math.cos(radian) * dotRadius;
-        const y = Math.sin(radian) * dotRadius;
-        const isCompleted = i < progress;
-
-        return (
-          <Animated.View
-            key={i}
-            style={{
-              position: 'absolute',
-              width: 12,
-              height: 12,
-              borderRadius: 6,
-              backgroundColor: isCompleted ? COLORS.gold.main : '#D1D5DB',
-              left: size / 2 + x - 6,
-              top: size / 2 + y - 6,
-              shadowColor: isCompleted ? COLORS.gold.main : 'transparent',
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: isCompleted ? 0.8 : 0,
-              shadowRadius: 4,
-              elevation: isCompleted ? 4 : 0,
-            }}
-          />
-        );
-      })}
     </View>
   );
 };
 
-// Gold Shimmer Day Box Component
+// Gold Shimmer Day Box Component with shine effect
 const GoldShimmerDayBox: React.FC<{
   isCompleted: boolean;
   isToday: boolean;
   children: React.ReactNode;
   colors: any;
 }> = ({ isCompleted, isToday, children, colors }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!isCompleted) return;
 
-    const shimmer = Animated.loop(
+    // Shine sweep animation
+    const shine = Animated.loop(
       Animated.sequence([
-        Animated.timing(shimmerAnim, {
+        Animated.timing(shineAnim, {
           toValue: 1,
-          duration: 2000,
-          useNativeDriver: Platform.OS !== 'web',
+          duration: 1500,
+          useNativeDriver: true,
         }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 2000,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
+        Animated.delay(500),
       ])
     );
-    shimmer.start();
+    shine.start();
 
-    return () => shimmer.stop();
-  }, [isCompleted]);
+    return () => shine.stop();
+  }, [isCompleted, shineAnim]);
 
-  const backgroundColor = shimmerAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [COLORS.gold.dark, COLORS.gold.light, COLORS.gold.dark],
+  const shineTranslate = shineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-40, 40],
   });
 
   if (!isCompleted) {
@@ -216,12 +195,12 @@ const GoldShimmerDayBox: React.FC<{
   }
 
   return (
-    <Animated.View
+    <View
       style={{
         width: 36,
         height: 36,
         borderRadius: 10,
-        backgroundColor: backgroundColor,
+        backgroundColor: COLORS.gold.main,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 6,
@@ -229,13 +208,28 @@ const GoldShimmerDayBox: React.FC<{
         borderColor: isToday ? colors.primary.main : 'transparent',
         shadowColor: COLORS.gold.main,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.5,
-        shadowRadius: 6,
+        shadowOpacity: 0.7,
+        shadowRadius: 8,
         elevation: Platform.OS === 'android' ? 6 : 0,
+        overflow: 'hidden',
       }}
     >
+      {/* Shine sweep effect */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          width: 12,
+          height: 50,
+          backgroundColor: COLORS.gold.light,
+          opacity: 0.6,
+          transform: [
+            { translateX: shineTranslate },
+            { rotate: '20deg' },
+          ],
+        }}
+      />
       {children}
-    </Animated.View>
+    </View>
   );
 };
 
